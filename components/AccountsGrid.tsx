@@ -60,7 +60,8 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
           a.username.toLowerCase().includes(q) ||
           a.email.toLowerCase().includes(q) ||
           a.url.toLowerCase().includes(q) ||
-          a.notes.toLowerCase().includes(q),
+          a.notes.toLowerCase().includes(q) ||
+          a.tags.some((tag) => tag.toLowerCase().includes(q)),
       );
     }
     result = [...result].sort((a, b) => {

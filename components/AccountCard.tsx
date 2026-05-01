@@ -191,6 +191,18 @@ export default function AccountCard({ account }: AccountCardProps) {
             </button>
           </div>
         )}
+        {account.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {account.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-md border border-zinc-800/60 bg-zinc-900/60 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-1.5 pt-1 mt-auto">
           <Link
             href={`/accounts/${account.id}`}

@@ -24,6 +24,7 @@ export interface Account {
   url: string;
   category: Category;
   notes: string;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -36,6 +37,7 @@ export interface AccountInput {
   url: string;
   category: Category;
   notes: string;
+  tags?: string[];
 }
 
 export interface AccountPublic extends Omit<Account, "password"> {
@@ -56,6 +58,7 @@ const accountSchema = new Schema<Account>(
       default: "other",
     },
     notes: { type: String, default: "" },
+    tags: { type: [String], default: [] },
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true },
   },
@@ -78,6 +81,7 @@ function toAccount(doc: Account): Account {
     url: doc.url ?? "",
     category: doc.category ?? "other",
     notes: doc.notes ?? "",
+    tags: doc.tags ?? [],
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -126,6 +130,7 @@ export async function createAccount(
     url: input.url,
     category: input.category,
     notes: input.notes,
+    tags: input.tags ?? [],
     createdAt: now,
     updatedAt: now,
   };
@@ -149,6 +154,7 @@ export async function updateAccount(
     url: input.url ?? existing.url,
     category: input.category ?? existing.category,
     notes: input.notes ?? existing.notes,
+    tags: input.tags ?? existing.tags ?? [],
     updatedAt: new Date().toISOString(),
   };
 

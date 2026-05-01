@@ -131,6 +131,20 @@ export default async function AccountDetailPage({
             </p>
           </DetailRow>
         )}
+        {account.tags.length > 0 && (
+          <DetailRow label="Tags">
+            <div className="flex flex-wrap gap-1.5">
+              {account.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-md border border-zinc-800/60 bg-zinc-950/40 px-2 py-1 text-xs font-medium text-zinc-500"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </DetailRow>
+        )}
         <DetailRow label="Added">
           <div className="flex items-center gap-1.5 text-sm text-zinc-400">
             <Calendar className="w-3.5 h-3.5 text-zinc-600" />

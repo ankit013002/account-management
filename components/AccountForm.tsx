@@ -42,6 +42,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
     url: account?.url ?? "",
     category: account?.category ?? "other",
     notes: account?.notes ?? "",
+    tags: account?.tags?.join(", ") ?? "",
   });
   const [showPw, setShowPw] = useState(false);
   const [copiedPw, setCopiedPw] = useState(false);
@@ -101,13 +102,19 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
       const url =
         mode === "edit" ? `/api/accounts/${account!.id}` : "/api/accounts";
       const method = mode === "edit" ? "PUT" : "POST";
-      const body: Record<string, string> = { ...form };
-      if (mode === "edit" && !form.password) delete body.password;
+      const payload: Record<string, string | string[]> = {
+        ...form,
+        tags: form.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+      };
+      if (mode === "edit" && !form.password) delete payload.password;
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -382,6 +389,17 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
           placeholder="Recovery email, 2FA backup codes, security questions..."
           rows={3}
           className={`${FIELD} resize-none`}
+        />
+      </div>
+
+      <div>
+        <label className={LABEL}>Tags</label>
+        <input
+          type="text"
+          value={form.tags}
+          onChange={(e) => set("tags", e.target.value)}
+          placeholder="personal, client, critical"
+          className={FIELD}
         />
       </div>
 

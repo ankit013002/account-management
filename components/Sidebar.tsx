@@ -15,11 +15,22 @@ import {
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/accounts/new", label: "Add Account", icon: PlusCircle, exact: false },
+  {
+    href: "/accounts/new",
+    label: "Add Account",
+    icon: PlusCircle,
+    exact: false,
+  },
   { href: "/chat", label: "AI Assistant", icon: MessageSquare, exact: false },
 ];
 
-function NavLinks({ pathname, onClick }: { pathname: string; onClick?: () => void }) {
+function NavLinks({
+  pathname,
+  onClick,
+}: {
+  pathname: string;
+  onClick?: () => void;
+}) {
   return (
     <nav className="flex-1 px-3 py-4 space-y-1">
       {nav.map(({ href, label, icon: Icon, exact }) => {
@@ -74,12 +85,19 @@ function SidebarContent({
             <Shield className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-bold text-zinc-100 leading-tight tracking-tight">Vault</p>
-            <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-wider">Account Manager</p>
+            <p className="text-sm font-bold text-zinc-100 leading-tight tracking-tight">
+              Vault
+            </p>
+            <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-wider">
+              Account Manager
+            </p>
           </div>
         </div>
         {showClose && (
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+          <button
+            onClick={onClose}
+            className="text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         )}
@@ -90,7 +108,9 @@ function SidebarContent({
       <div className="px-4 py-4 border-t border-zinc-800/60">
         <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15">
           <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
-          <span className="text-[11px] text-emerald-400/70 font-medium">AES-256-GCM encrypted</span>
+          <span className="text-[11px] text-emerald-400/70 font-medium">
+            AES-256-GCM encrypted
+          </span>
         </div>
       </div>
     </>
@@ -122,7 +142,12 @@ export default function Sidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <SidebarContent pathname={pathname} onNavClick={() => setMobileOpen(false)} showClose onClose={() => setMobileOpen(false)} />
+        <SidebarContent
+          pathname={pathname}
+          onNavClick={() => setMobileOpen(false)}
+          showClose
+          onClose={() => setMobileOpen(false)}
+        />
       </aside>
 
       <aside className="hidden md:flex h-screen w-60 flex-col bg-[#0d0d10] border-r border-zinc-800/60 shrink-0 sticky top-0">

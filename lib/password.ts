@@ -17,7 +17,10 @@ export function getPasswordStrength(password: string): PasswordStrength {
   if (/\d/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
-  const level = Math.min(4, Math.max(1, Math.ceil(score / 1.25))) as StrengthLevel;
+  const level = Math.min(
+    4,
+    Math.max(1, Math.ceil(score / 1.25)),
+  ) as StrengthLevel;
 
   const map: Record<StrengthLevel, Omit<PasswordStrength, "level">> = {
     0: { label: "", color: "", width: "0%" },

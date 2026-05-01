@@ -24,7 +24,9 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">
+            Dashboard
+          </h1>
           <p className="text-sm text-zinc-500 mt-1">
             {stats.total === 0
               ? "No accounts stored yet"
@@ -97,7 +99,8 @@ export default async function DashboardPage() {
                 Ask the AI Assistant
               </p>
               <p className="text-xs text-zinc-500">
-                &ldquo;What&rsquo;s my Amazon password?&rdquo; · Powered by llama3.1 locally
+                &ldquo;What&rsquo;s my Amazon password?&rdquo; · Powered by
+                llama3.1 locally
               </p>
             </div>
             <Link
@@ -157,7 +160,9 @@ function StatCard({
 
   return (
     <div className="relative overflow-hidden bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-4">
-      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-xl ${c.bg} border ${c.border} ${c.icon} mb-3`}>
+      <div
+        className={`inline-flex items-center justify-center w-8 h-8 rounded-xl ${c.bg} border ${c.border} ${c.icon} mb-3`}
+      >
         {icon}
       </div>
       <p className={`text-2xl font-bold ${c.text} tabular-nums`}>{value}</p>

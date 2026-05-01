@@ -12,6 +12,7 @@ import {
   X,
   Lock,
 } from "lucide-react";
+import LockButton from "./LockButton";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -112,6 +113,7 @@ function SidebarContent({
             AES-256-GCM encrypted
           </span>
         </div>
+        <LockButton />
       </div>
     </>
   );

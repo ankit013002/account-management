@@ -43,6 +43,7 @@ Create a `.env.local` file in the project root:
 MONGODB_URI=mongodb://127.0.0.1:27017/account-management
 ENCRYPTION_KEY=replace-with-a-64-character-hex-key
 OLLAMA_URL=http://localhost:11434
+MASTER_PASSWORD=choose-a-local-master-password
 ```
 
 Generate a suitable encryption key with Node:
@@ -121,6 +122,8 @@ public/               Static assets
 ## Security Notes
 
 Set `ENCRYPTION_KEY` before storing real passwords. The app has a development fallback key, but that fallback should not be used for private or production data.
+
+Set `MASTER_PASSWORD` or `MASTER_PASSWORD_HASH` to require unlocking the vault before viewing pages or calling account APIs.
 
 Passwords are decrypted for account detail views and for the local assistant context. Run this project only in an environment you trust, and keep `.env.local` out of version control.
 

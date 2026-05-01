@@ -2,6 +2,8 @@ import { getAllAccountsDecrypted } from "./db";
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const MODEL = "llama3.1:latest";
+const PASSWORD_REQUEST_PATTERN =
+  /\b(password|passcode|credential|credentials|login secret|show secret)\b/i;
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -15,6 +17,7 @@ async function buildAccountsContext(query: string): Promise<string> {
   }
 
   const queryLower = query.toLowerCase();
+  const includePasswords = PASSWORD_REQUEST_PATTERN.test(query);
   const tokens = queryLower.split(/\s+/).filter((t) => t.length > 2);
 
   // Score accounts by relevance to the query
@@ -38,7 +41,11 @@ async function buildAccountsContext(query: string): Promise<string> {
 Category: ${acc.category}
 Username/Login: ${acc.username}
 Email: ${acc.email}
-Password: ${acc.decryptedPassword || "(not set)"}
+Password: ${
+          includePasswords
+            ? acc.decryptedPassword || "(not set)"
+            : "(hidden unless explicitly requested)"
+        }
 Website URL: ${acc.url}
 Notes: ${acc.notes || "(none)"}
 Added: ${new Date(acc.createdAt).toLocaleDateString()}
@@ -55,7 +62,7 @@ export async function chatWithOllama(
 
   const context = await buildAccountsContext(query);
 
-  const systemPrompt = `You are a helpful personal account manager assistant. You have full access to the user's account database below. When asked about passwords, usernames, URLs, or any account details, provide them directly and accurately from the data. Be concise and helpful.
+  const systemPrompt = `You are a helpful personal account manager assistant. You have access to the user's account database below. Be concise and answer from the provided data. Do not reveal passwords unless the user explicitly asks for passwords or credentials in their latest request.
 
 === ACCOUNT DATABASE ===
 ${context}
@@ -63,7 +70,7 @@ ${context}
 
 Today's date: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
 
-Always answer based on the account data above. If the user asks for a password or credential, provide it clearly.`;
+Always answer based on the account data above. If a password is hidden in the context, say that the user needs to ask for the password explicitly.`;
 
   const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
     method: "POST",

@@ -153,6 +153,10 @@ test("creates, reads, updates, and deletes an account using MongoDB", async () =
       url: "https://github.com",
       category: "work",
       notes: "Test account",
+      tags: ["critical", "developer"],
+      recoveryEmail: "recover@example.com",
+      backupCodes: "111111\n222222",
+      twoFactorEnabled: true,
     }),
   });
 
@@ -160,9 +164,17 @@ test("creates, reads, updates, and deletes an account using MongoDB", async () =
   assert.equal(created.body.name, "GitHub");
   assert.equal(created.body.hasPassword, true);
   assert.equal(created.body.password, undefined);
+  assert.deepEqual(created.body.tags, ["critical", "developer"]);
+  assert.equal(created.body.recoveryEmail, "recover@example.com");
+  assert.equal(created.body.backupCodes, "111111\n222222");
+  assert.equal(created.body.twoFactorEnabled, true);
+  assert.equal(created.body.favorite, false);
 
   const stored = readStoredAccount(created.body.id);
   assert.equal(stored.name, "GitHub");
+  assert.deepEqual(stored.tags, ["critical", "developer"]);
+  assert.equal(stored.recoveryEmail, "recover@example.com");
+  assert.equal(stored.twoFactorEnabled, true);
   assert.notEqual(stored.password, plainPassword);
   assert.match(stored.password, /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/);
 
@@ -182,17 +194,26 @@ test("creates, reads, updates, and deletes an account using MongoDB", async () =
     body: JSON.stringify({
       name: "GitHub Enterprise",
       notes: "Updated without sending a password",
+      favorite: true,
     }),
   });
 
   assert.equal(updated.response.status, 200);
   assert.equal(updated.body.name, "GitHub Enterprise");
+  assert.equal(updated.body.favorite, true);
   assert.equal(updated.body.password, undefined);
 
   const detailAfterUpdate = await request(`/api/accounts/${created.body.id}`);
   assert.equal(detailAfterUpdate.response.status, 200);
   assert.equal(detailAfterUpdate.body.password, plainPassword);
   assert.equal(detailAfterUpdate.body.notes, "Updated without sending a password");
+  assert.equal(detailAfterUpdate.body.favorite, true);
+
+  const backup = await request("/api/backup");
+  assert.equal(backup.response.status, 200);
+  assert.equal(backup.body.algorithm, "aes-256-gcm");
+  assert.equal(typeof backup.body.data, "string");
+  assert.equal(JSON.stringify(backup.body).includes(plainPassword), false);
 
   const deleted = await request(`/api/accounts/${created.body.id}`, {
     method: "DELETE",
@@ -205,4 +226,20 @@ test("creates, reads, updates, and deletes an account using MongoDB", async () =
 
   const remaining = runMongosh("print(db.accounts.countDocuments({}));");
   assert.equal(Number(remaining.split(/\r?\n/).at(-1)), 0);
+
+  const restored = await request("/api/backup", {
+    method: "POST",
+    body: JSON.stringify(backup.body),
+  });
+  assert.equal(restored.response.status, 200);
+  assert.equal(restored.body.imported, 1);
+
+  const restoredDetail = await request(`/api/accounts/${created.body.id}`);
+  assert.equal(restoredDetail.response.status, 200);
+  assert.equal(restoredDetail.body.name, "GitHub Enterprise");
+  assert.equal(restoredDetail.body.password, plainPassword);
+  assert.equal(restoredDetail.body.favorite, true);
+
+  const auditCount = runMongosh("print(db.audit_events.countDocuments({}));");
+  assert.ok(Number(auditCount.split(/\r?\n/).at(-1)) >= 5);
 });

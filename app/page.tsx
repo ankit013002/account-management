@@ -1,6 +1,11 @@
-import { getAllAccounts, getAllAccountsDecrypted } from "@/lib/db";
+import {
+  getAllAccounts,
+  getAllAccountsDecrypted,
+  getRecentAuditEvents,
+} from "@/lib/db";
 import AccountsGrid from "@/components/AccountsGrid";
 import PasswordHealthPanel from "@/components/PasswordHealthPanel";
+import AuditLogPanel from "@/components/AuditLogPanel";
 import Link from "next/link";
 import { PlusCircle, KeyRound, Layers, MessageSquare } from "lucide-react";
 import { getCategoryMeta } from "@/lib/utils";
@@ -9,9 +14,10 @@ import { getPasswordHealthReport } from "@/lib/passwordHealth";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [accounts, decryptedAccounts] = await Promise.all([
+  const [accounts, decryptedAccounts, auditEvents] = await Promise.all([
     getAllAccounts(),
     getAllAccountsDecrypted(),
+    getRecentAuditEvents(),
   ]);
   const passwordHealth = getPasswordHealthReport(decryptedAccounts);
 
@@ -121,6 +127,8 @@ export default async function DashboardPage() {
       )}
 
       {stats.total > 0 && <PasswordHealthPanel report={passwordHealth} />}
+
+      {stats.total > 0 && <AuditLogPanel events={auditEvents} />}
 
       {/* Accounts grid */}
       <div>

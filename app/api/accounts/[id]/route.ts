@@ -4,6 +4,7 @@ import {
   updateAccount,
   deleteAccount,
   getDecryptedAccount,
+  recordAuditEvent,
 } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -18,6 +19,7 @@ export async function GET(
   if (!account) {
     return Response.json({ error: "Account not found" }, { status: 404 });
   }
+  await recordAuditEvent("viewed", id, account.name);
   const decrypted = getDecryptedAccount(account);
   return Response.json({
     ...decrypted,

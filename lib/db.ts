@@ -101,6 +101,12 @@ export async function getAllAccounts(): Promise<AccountPublic[]> {
   return docs.map((doc) => toPublic(toAccount(doc)));
 }
 
+export async function getAllAccountsRaw(): Promise<Account[]> {
+  await connectToDatabase();
+  const docs = await AccountModel.find().sort({ createdAt: -1 }).lean<Account[]>();
+  return docs.map((doc) => toAccount(doc));
+}
+
 export async function getAccountById(id: string): Promise<Account | null> {
   await connectToDatabase();
   const doc = await AccountModel.findOne({ id }).lean<Account>();
@@ -168,6 +174,19 @@ export async function deleteAccount(id: string): Promise<boolean> {
   await connectToDatabase();
   const result = await AccountModel.deleteOne({ id });
   return result.deletedCount === 1;
+}
+
+export async function importAccounts(accounts: Account[]): Promise<number> {
+  await connectToDatabase();
+  let count = 0;
+  for (const account of accounts) {
+    await AccountModel.findOneAndUpdate({ id: account.id }, toAccount(account), {
+      upsert: true,
+      new: true,
+    });
+    count++;
+  }
+  return count;
 }
 
 /** Returns all accounts with decrypted passwords - for RAG context only */

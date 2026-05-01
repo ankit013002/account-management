@@ -11,6 +11,7 @@ A private account-management dashboard built with Next.js. It stores account det
 - Copy controls for account details
 - Optional local AI assistant backed by Ollama and `llama3.1:latest`
 - MongoDB persistence through Mongoose
+- Encrypted JSON backup import and export
 
 ## Tech Stack
 

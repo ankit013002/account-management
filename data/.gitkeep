@@ -1,0 +1,3 @@
+# This folder holds the local accounts database.
+# accounts.json is created automatically on first use.
+# DO NOT commit accounts.json — it contains encrypted passwords.

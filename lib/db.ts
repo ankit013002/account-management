@@ -28,6 +28,7 @@ export interface Account {
   recoveryEmail: string;
   backupCodes: string;
   twoFactorEnabled: boolean;
+  favorite: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +45,7 @@ export interface AccountInput {
   recoveryEmail?: string;
   backupCodes?: string;
   twoFactorEnabled?: boolean;
+  favorite?: boolean;
 }
 
 export interface AccountPublic extends Omit<Account, "password"> {
@@ -76,6 +78,7 @@ const accountSchema = new Schema<Account>(
     recoveryEmail: { type: String, default: "" },
     backupCodes: { type: String, default: "" },
     twoFactorEnabled: { type: Boolean, default: false },
+    favorite: { type: Boolean, default: false },
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true },
   },
@@ -123,6 +126,7 @@ function toAccount(doc: Account): Account {
     recoveryEmail: doc.recoveryEmail ?? "",
     backupCodes: doc.backupCodes ?? "",
     twoFactorEnabled: doc.twoFactorEnabled ?? false,
+    favorite: doc.favorite ?? false,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -181,6 +185,7 @@ export async function createAccount(
     recoveryEmail: input.recoveryEmail ?? "",
     backupCodes: input.backupCodes ?? "",
     twoFactorEnabled: input.twoFactorEnabled ?? false,
+    favorite: input.favorite ?? false,
     createdAt: now,
     updatedAt: now,
   };
@@ -210,6 +215,7 @@ export async function updateAccount(
     backupCodes: input.backupCodes ?? existing.backupCodes ?? "",
     twoFactorEnabled:
       input.twoFactorEnabled ?? existing.twoFactorEnabled ?? false,
+    favorite: input.favorite ?? existing.favorite ?? false,
     updatedAt: new Date().toISOString(),
   };
 

@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { getCategoryMeta, getDomain, formatUrl } from "@/lib/utils";
 import type { AccountPublic } from "@/lib/db";
+import FavoriteButton from "./FavoriteButton";
 
 const CATEGORY_GRADIENTS: Record<string, string> = {
   email: "from-blue-500/20 to-blue-600/5",
@@ -106,11 +107,18 @@ export default function AccountCard({ account }: AccountCardProps) {
       />
       <Link
         href={`/accounts/${account.id}/edit`}
-        className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-zinc-800/80 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-all backdrop-blur-sm"
+        className="absolute top-3 right-10 z-10 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-zinc-800/80 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-all backdrop-blur-sm"
         title="Edit"
       >
         <Pencil className="w-3 h-3" />
       </Link>
+      <div className="absolute right-3 top-3 z-10 rounded-lg bg-zinc-800/80 backdrop-blur-sm">
+        <FavoriteButton
+          accountId={account.id}
+          favorite={account.favorite}
+          compact
+        />
+      </div>
       <div className="relative p-4 flex flex-col gap-3 flex-1">
         <div className="flex items-center gap-3">
           <div

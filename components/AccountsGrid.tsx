@@ -72,6 +72,7 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
       } else {
         cmp = a.createdAt.localeCompare(b.createdAt);
       }
+      if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
       return sortDir === "asc" ? cmp : -cmp;
     });
     return result;

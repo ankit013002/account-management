@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Pencil, Calendar } from "lucide-react";
 import DeleteAccountButton from "./DeleteAccountButton";
 import CopyInlineButton from "./CopyInlineButton";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,7 @@ export default async function AccountDetailPage({
             <Pencil className="w-3.5 h-3.5" />
             Edit
           </Link>
+          <FavoriteButton accountId={id} favorite={account.favorite} />
           <DeleteAccountButton accountId={id} accountName={account.name} />
         </div>
       </div>

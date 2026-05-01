@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, ArrowUpDown, PlusCircle } from "lucide-react";
+import {
+  Search,
+  ArrowUpDown,
+  PlusCircle,
+  KeyRound,
+  UserRound,
+  Link2,
+  RotateCcw,
+} from "lucide-react";
 import Link from "next/link";
 import AccountCard from "./AccountCard";
 import { CATEGORIES, getCategoryMeta } from "@/lib/utils";
@@ -12,10 +20,12 @@ interface AccountsGridProps {
 }
 
 type SortKey = "name" | "createdAt" | "category";
+type QuickFilter = "all" | "withPassword" | "withoutPassword" | "missingLogin" | "missingUrl";
 
 export default function AccountsGrid({ accounts }: AccountsGridProps) {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -32,6 +42,15 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
     let result = accounts;
     if (activeCategory !== "all") {
       result = result.filter((a) => a.category === activeCategory);
+    }
+    if (quickFilter === "withPassword") {
+      result = result.filter((a) => a.hasPassword);
+    } else if (quickFilter === "withoutPassword") {
+      result = result.filter((a) => !a.hasPassword);
+    } else if (quickFilter === "missingLogin") {
+      result = result.filter((a) => !a.username && !a.email);
+    } else if (quickFilter === "missingUrl") {
+      result = result.filter((a) => !a.url);
     }
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -55,7 +74,7 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return result;
-  }, [accounts, query, activeCategory, sortKey, sortDir]);
+  }, [accounts, query, activeCategory, quickFilter, sortKey, sortDir]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: accounts.length };
@@ -64,6 +83,48 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
     }
     return counts;
   }, [accounts]);
+
+  const quickFilters: {
+    key: QuickFilter;
+    label: string;
+    count: number;
+    icon: React.ElementType;
+  }[] = [
+    { key: "all", label: "Any", count: accounts.length, icon: Search },
+    {
+      key: "withPassword",
+      label: "Has password",
+      count: accounts.filter((a) => a.hasPassword).length,
+      icon: KeyRound,
+    },
+    {
+      key: "withoutPassword",
+      label: "No password",
+      count: accounts.filter((a) => !a.hasPassword).length,
+      icon: KeyRound,
+    },
+    {
+      key: "missingLogin",
+      label: "No login",
+      count: accounts.filter((a) => !a.username && !a.email).length,
+      icon: UserRound,
+    },
+    {
+      key: "missingUrl",
+      label: "No URL",
+      count: accounts.filter((a) => !a.url).length,
+      icon: Link2,
+    },
+  ];
+
+  const hasFilters =
+    Boolean(query) || activeCategory !== "all" || quickFilter !== "all";
+
+  function resetFilters() {
+    setQuery("");
+    setActiveCategory("all");
+    setQuickFilter("all");
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -144,7 +205,35 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
         })}
       </div>
 
-      {(query || activeCategory !== "all") && (
+      <div className="flex flex-wrap items-center gap-1.5">
+        {quickFilters.map(({ key, label, count, icon: Icon }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setQuickFilter(key)}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+              quickFilter === key
+                ? "border-indigo-500/40 bg-indigo-600/20 text-indigo-400"
+                : "border-zinc-800/60 bg-transparent text-zinc-600 hover:border-zinc-700 hover:text-zinc-400"
+            }`}
+          >
+            <Icon className="h-3 w-3" />
+            {label} · {count}
+          </button>
+        ))}
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800/60 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-all hover:border-zinc-700 hover:text-zinc-300"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Reset
+          </button>
+        )}
+      </div>
+
+      {hasFilters && (
         <p className="text-xs text-zinc-600">
           {filtered.length} result{filtered.length !== 1 ? "s" : ""}
           {query && <> for &ldquo;{query}&rdquo;</>}

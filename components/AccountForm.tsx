@@ -43,6 +43,9 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
     category: account?.category ?? "other",
     notes: account?.notes ?? "",
     tags: account?.tags?.join(", ") ?? "",
+    recoveryEmail: account?.recoveryEmail ?? "",
+    backupCodes: account?.backupCodes ?? "",
+    twoFactorEnabled: account?.twoFactorEnabled ?? false,
   });
   const [showPw, setShowPw] = useState(false);
   const [copiedPw, setCopiedPw] = useState(false);
@@ -61,6 +64,10 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
   const strength = getPasswordStrength(form.password);
 
   function set(field: keyof typeof form, value: string) {
+    setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  function setBoolean(field: keyof typeof form, value: boolean) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
@@ -102,7 +109,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
       const url =
         mode === "edit" ? `/api/accounts/${account!.id}` : "/api/accounts";
       const method = mode === "edit" ? "PUT" : "POST";
-      const payload: Record<string, string | string[]> = {
+      const payload: Record<string, string | string[] | boolean> = {
         ...form,
         tags: form.tags
           .split(",")
@@ -389,6 +396,40 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
           placeholder="Recovery email, 2FA backup codes, security questions..."
           rows={3}
           className={`${FIELD} resize-none`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={LABEL}>Recovery Email</label>
+          <input
+            type="email"
+            value={form.recoveryEmail}
+            onChange={(e) => set("recoveryEmail", e.target.value)}
+            placeholder="recovery@example.com"
+            autoComplete="off"
+            className={FIELD}
+          />
+        </div>
+        <label className="flex items-center gap-3 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3 text-sm font-medium text-zinc-400">
+          <input
+            type="checkbox"
+            checked={form.twoFactorEnabled}
+            onChange={(e) => setBoolean("twoFactorEnabled", e.target.checked)}
+            className="h-4 w-4 accent-indigo-500"
+          />
+          2FA enabled
+        </label>
+      </div>
+
+      <div>
+        <label className={LABEL}>Backup Codes</label>
+        <textarea
+          value={form.backupCodes}
+          onChange={(e) => set("backupCodes", e.target.value)}
+          placeholder="One backup code per line"
+          rows={3}
+          className={`${FIELD} resize-none font-mono`}
         />
       </div>
 

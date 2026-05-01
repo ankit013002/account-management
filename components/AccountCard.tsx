@@ -203,6 +203,11 @@ export default function AccountCard({ account }: AccountCardProps) {
             ))}
           </div>
         )}
+        {account.twoFactorEnabled && (
+          <span className="w-fit rounded-md border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+            2FA
+          </span>
+        )}
         <div className="flex items-center gap-1.5 pt-1 mt-auto">
           <Link
             href={`/accounts/${account.id}`}

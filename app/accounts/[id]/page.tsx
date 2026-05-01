@@ -131,6 +131,41 @@ export default async function AccountDetailPage({
             </p>
           </DetailRow>
         )}
+        {(account.recoveryEmail ||
+          account.backupCodes ||
+          account.twoFactorEnabled) && (
+          <DetailRow label="Recovery">
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`rounded-md border px-2 py-1 text-xs font-medium ${
+                    account.twoFactorEnabled
+                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                      : "border-zinc-800/60 bg-zinc-950/40 text-zinc-500"
+                  }`}
+                >
+                  2FA {account.twoFactorEnabled ? "enabled" : "not enabled"}
+                </span>
+              </div>
+              {account.recoveryEmail && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-zinc-300">
+                    {account.recoveryEmail}
+                  </span>
+                  <CopyInlineButton
+                    value={account.recoveryEmail}
+                    label="recovery email"
+                  />
+                </div>
+              )}
+              {account.backupCodes && (
+                <pre className="whitespace-pre-wrap rounded-xl border border-zinc-800/60 bg-zinc-950/40 p-3 text-xs text-zinc-400">
+                  {account.backupCodes}
+                </pre>
+              )}
+            </div>
+          </DetailRow>
+        )}
         {account.tags.length > 0 && (
           <DetailRow label="Tags">
             <div className="flex flex-wrap gap-1.5">

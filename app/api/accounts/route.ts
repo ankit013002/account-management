@@ -11,7 +11,19 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, username, email, password, url, category, notes, tags } = body;
+  const {
+    name,
+    username,
+    email,
+    password,
+    url,
+    category,
+    notes,
+    tags,
+    recoveryEmail,
+    backupCodes,
+    twoFactorEnabled,
+  } = body;
 
   if (!name || typeof name !== "string" || !name.trim()) {
     return Response.json(
@@ -34,6 +46,9 @@ export async function POST(request: NextRequest) {
     tags: Array.isArray(tags)
       ? tags.map((tag) => String(tag).trim()).filter(Boolean)
       : [],
+    recoveryEmail: (recoveryEmail ?? "").trim(),
+    backupCodes: (backupCodes ?? "").trim(),
+    twoFactorEnabled: Boolean(twoFactorEnabled),
   });
 
   return Response.json(account, { status: 201 });

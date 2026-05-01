@@ -25,6 +25,9 @@ export interface Account {
   category: Category;
   notes: string;
   tags: string[];
+  recoveryEmail: string;
+  backupCodes: string;
+  twoFactorEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +41,9 @@ export interface AccountInput {
   category: Category;
   notes: string;
   tags?: string[];
+  recoveryEmail?: string;
+  backupCodes?: string;
+  twoFactorEnabled?: boolean;
 }
 
 export interface AccountPublic extends Omit<Account, "password"> {
@@ -67,6 +73,9 @@ const accountSchema = new Schema<Account>(
     },
     notes: { type: String, default: "" },
     tags: { type: [String], default: [] },
+    recoveryEmail: { type: String, default: "" },
+    backupCodes: { type: String, default: "" },
+    twoFactorEnabled: { type: Boolean, default: false },
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true },
   },
@@ -111,6 +120,9 @@ function toAccount(doc: Account): Account {
     category: doc.category ?? "other",
     notes: doc.notes ?? "",
     tags: doc.tags ?? [],
+    recoveryEmail: doc.recoveryEmail ?? "",
+    backupCodes: doc.backupCodes ?? "",
+    twoFactorEnabled: doc.twoFactorEnabled ?? false,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -166,6 +178,9 @@ export async function createAccount(
     category: input.category,
     notes: input.notes,
     tags: input.tags ?? [],
+    recoveryEmail: input.recoveryEmail ?? "",
+    backupCodes: input.backupCodes ?? "",
+    twoFactorEnabled: input.twoFactorEnabled ?? false,
     createdAt: now,
     updatedAt: now,
   };
@@ -191,6 +206,10 @@ export async function updateAccount(
     category: input.category ?? existing.category,
     notes: input.notes ?? existing.notes,
     tags: input.tags ?? existing.tags ?? [],
+    recoveryEmail: input.recoveryEmail ?? existing.recoveryEmail ?? "",
+    backupCodes: input.backupCodes ?? existing.backupCodes ?? "",
+    twoFactorEnabled:
+      input.twoFactorEnabled ?? existing.twoFactorEnabled ?? false,
     updatedAt: new Date().toISOString(),
   };
 

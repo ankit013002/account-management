@@ -96,12 +96,25 @@ npm run lint
 
 Runs ESLint.
 
+```bash
+npm test
+```
+
+Runs the Node test suite.
+
+```bash
+npm run test:mongo
+```
+
+Starts a temporary Next.js test server, uses a throwaway MongoDB database, verifies the account API flow, confirms saved passwords are encrypted in MongoDB, and drops the test database afterward. MongoDB must be running and `mongosh` must be available on your PATH.
+
 ## Project Structure
 
 ```text
 app/                  Next.js App Router pages and API routes
 components/           Reusable UI components
 lib/                  Database, encryption, password, Ollama, and utility code
+tests/                Node test runner integration tests
 public/               Static assets
 ```
 

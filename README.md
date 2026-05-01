@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Account Management
+
+A private account-management dashboard built with Next.js. It stores account details in MongoDB, encrypts saved passwords, and includes an optional local Ollama-powered chat assistant for searching account information.
+
+## Features
+
+- Dashboard summary for total accounts, accounts with passwords, and categories
+- Create, view, edit, and delete account records
+- Category-based account organization
+- Encrypted password storage using AES-256-GCM
+- Copy controls for account details
+- Optional local AI assistant backed by Ollama and `llama3.1:latest`
+- MongoDB persistence through Mongoose
+
+## Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- MongoDB with Mongoose
+- Lucide React icons
+- Ollama for the local assistant
+
+## Requirements
+
+- Node.js 20 or newer
+- npm
+- MongoDB running locally or a MongoDB connection string
+- Ollama, only if you want to use the chat assistant
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env.local` file in the project root:
+
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/account-management
+ENCRYPTION_KEY=replace-with-a-64-character-hex-key
+OLLAMA_URL=http://localhost:11434
+```
+
+Generate a suitable encryption key with Node:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Start MongoDB, then run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Ollama Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The chat assistant uses `llama3.1:latest` by default. To enable it locally:
 
-## Learn More
+```bash
+ollama pull llama3.1
+ollama serve
+```
 
-To learn more about Next.js, take a look at the following resources:
+If Ollama is not running, the account-management features still work. Only the chat assistant will be unavailable.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Available Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev
+```
 
-## Deploy on Vercel
+Starts the Next.js development server.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Builds the production application.
+
+```bash
+npm run start
+```
+
+Starts the production server after a successful build.
+
+```bash
+npm run lint
+```
+
+Runs ESLint.
+
+## Project Structure
+
+```text
+app/                  Next.js App Router pages and API routes
+components/           Reusable UI components
+lib/                  Database, encryption, password, Ollama, and utility code
+public/               Static assets
+```
+
+## Security Notes
+
+Set `ENCRYPTION_KEY` before storing real passwords. The app has a development fallback key, but that fallback should not be used for private or production data.
+
+Passwords are decrypted for account detail views and for the local assistant context. Run this project only in an environment you trust, and keep `.env.local` out of version control.
+
+## Deployment
+
+For deployment, configure the same environment variables on your host and point `MONGODB_URI` at a persistent MongoDB instance. If the chat assistant is required in production, the deployed app also needs network access to an Ollama server.

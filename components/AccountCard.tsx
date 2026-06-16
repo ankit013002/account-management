@@ -9,44 +9,17 @@ import {
   EyeOff,
   Pencil,
   User,
+  AlertTriangle,
 } from "lucide-react";
 import { useState } from "react";
-import { getCategoryMeta, getDomain, formatUrl } from "@/lib/utils";
+import {
+  getAccountQualityHints,
+  getAccountVisual,
+  getDomain,
+  formatUrl,
+} from "@/lib/utils";
 import type { AccountPublic } from "@/lib/db";
 import FavoriteButton from "./FavoriteButton";
-
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  email: "from-blue-500/20 to-blue-600/5",
-  shopping: "from-orange-500/20 to-orange-600/5",
-  social: "from-pink-500/20 to-pink-600/5",
-  banking: "from-emerald-500/20 to-emerald-600/5",
-  work: "from-purple-500/20 to-purple-600/5",
-  gaming: "from-red-500/20 to-red-600/5",
-  streaming: "from-yellow-500/20 to-yellow-600/5",
-  other: "from-zinc-500/20 to-zinc-600/5",
-};
-
-const CATEGORY_GLOW: Record<string, string> = {
-  email: "hover:shadow-blue-500/10",
-  shopping: "hover:shadow-orange-500/10",
-  social: "hover:shadow-pink-500/10",
-  banking: "hover:shadow-emerald-500/10",
-  work: "hover:shadow-purple-500/10",
-  gaming: "hover:shadow-red-500/10",
-  streaming: "hover:shadow-yellow-500/10",
-  other: "hover:shadow-zinc-500/10",
-};
-
-const CATEGORY_BORDER: Record<string, string> = {
-  email: "hover:border-blue-500/25",
-  shopping: "hover:border-orange-500/25",
-  social: "hover:border-pink-500/25",
-  banking: "hover:border-emerald-500/25",
-  work: "hover:border-purple-500/25",
-  gaming: "hover:border-red-500/25",
-  streaming: "hover:border-yellow-500/25",
-  other: "hover:border-zinc-500/25",
-};
 
 interface AccountCardProps {
   account: AccountPublic;
@@ -59,12 +32,8 @@ export default function AccountCard({ account }: AccountCardProps) {
   const [password, setPassword] = useState<string | null>(null);
   const [loadingPw, setLoadingPw] = useState(false);
 
-  const meta = getCategoryMeta(account.category);
-  const gradient =
-    CATEGORY_GRADIENTS[account.category] ?? CATEGORY_GRADIENTS.other;
-  const glow = CATEGORY_GLOW[account.category] ?? CATEGORY_GLOW.other;
-  const borderHover =
-    CATEGORY_BORDER[account.category] ?? CATEGORY_BORDER.other;
+  const visual = getAccountVisual(account);
+  const qualityHints = getAccountQualityHints(account).slice(0, 2);
 
   async function fetchPassword(): Promise<string> {
     if (password !== null) return password;
@@ -100,11 +69,18 @@ export default function AccountCard({ account }: AccountCardProps) {
 
   return (
     <div
-      className={`group relative flex flex-col rounded-2xl border border-zinc-800/60 bg-[#0f0f12] overflow-hidden transition-all duration-300 hover:shadow-xl ${glow} ${borderHover} hover:-translate-y-0.5`}
+      className={`group relative flex flex-col rounded-2xl border border-zinc-800/60 bg-[#0f0f12] overflow-hidden transition-all duration-300 hover:shadow-xl ${visual.glow} ${visual.border} hover:-translate-y-0.5`}
     >
-      <div
-        className={`absolute inset-x-0 top-0 h-24 bg-linear-to-b ${gradient} pointer-events-none`}
-      />
+      {visual.customGradient ? (
+        <div
+          className="absolute inset-x-0 top-0 h-24 pointer-events-none"
+          style={{ background: visual.customGradient }}
+        />
+      ) : (
+        <div
+          className={`absolute inset-x-0 top-0 h-24 bg-linear-to-b ${visual.gradient} pointer-events-none`}
+        />
+      )}
       <Link
         href={`/accounts/${account.id}/edit`}
         className="absolute top-3 right-10 z-10 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-zinc-800/80 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-all backdrop-blur-sm"
@@ -122,9 +98,10 @@ export default function AccountCard({ account }: AccountCardProps) {
       <div className="relative p-4 flex flex-col gap-3 flex-1">
         <div className="flex items-center gap-3">
           <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl border ${meta.bg} shrink-0`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold border ${visual.bg} shrink-0`}
+            style={visual.customBadgeStyle}
           >
-            {meta.icon}
+            {visual.icon}
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-zinc-100 text-sm leading-tight truncate">
@@ -136,9 +113,10 @@ export default function AccountCard({ account }: AccountCardProps) {
               </span>
             ) : (
               <span
-                className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${meta.bg} ${meta.color}`}
+                className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${visual.bg} ${visual.color}`}
+                style={visual.customBadgeStyle}
               >
-                {meta.label}
+                {visual.label}
               </span>
             )}
           </div>
@@ -215,6 +193,25 @@ export default function AccountCard({ account }: AccountCardProps) {
           <span className="w-fit rounded-md border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
             2FA
           </span>
+        )}
+        {qualityHints.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {qualityHints.map((hint) => (
+              <span
+                key={hint.key}
+                className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${
+                  hint.tone === "warning"
+                    ? "border-amber-500/20 bg-amber-500/10 text-amber-300"
+                    : "border-zinc-800/60 bg-zinc-950/40 text-zinc-500"
+                }`}
+              >
+                {hint.tone === "warning" && (
+                  <AlertTriangle className="h-2.5 w-2.5" />
+                )}
+                {hint.label}
+              </span>
+            ))}
+          </div>
         )}
         <div className="flex items-center gap-1.5 pt-1 mt-auto">
           <Link

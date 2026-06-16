@@ -1,5 +1,5 @@
 import { getAccountById, getDecryptedAccount } from "@/lib/db";
-import { getCategoryMeta, formatUrl, getDomain } from "@/lib/utils";
+import { getAccountVisual, formatUrl, getDomain } from "@/lib/utils";
 import PasswordField from "@/components/PasswordField";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,7 +19,7 @@ export default async function AccountDetailPage({
   const raw = await getAccountById(id);
   if (!raw) notFound();
   const account = getDecryptedAccount(raw);
-  const meta = getCategoryMeta(account.category);
+  const visual = getAccountVisual(account);
 
   return (
     <div className="max-w-2xl mx-auto p-6 md:p-8 pl-16 md:pl-8">
@@ -32,14 +32,24 @@ export default async function AccountDetailPage({
       </Link>
 
       <div className="relative overflow-hidden bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-6 mb-4">
-        <div className="absolute inset-x-0 top-0 h-28 opacity-40 pointer-events-none bg-linear-to-b from-white/5 to-transparent" />
+        {visual.customGradient ? (
+          <div
+            className="absolute inset-x-0 top-0 h-28 opacity-60 pointer-events-none"
+            style={{ background: visual.customGradient }}
+          />
+        ) : (
+          <div
+            className={`absolute inset-x-0 top-0 h-28 opacity-60 pointer-events-none bg-linear-to-b ${visual.gradient}`}
+          />
+        )}
 
         <div className="relative flex items-start justify-between gap-4 mb-5">
           <div className="flex items-center gap-4">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl border ${meta.bg}`}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center text-base font-bold border ${visual.bg}`}
+              style={visual.customBadgeStyle}
             >
-              {meta.icon}
+              {visual.icon}
             </div>
             <div>
               <h1 className="text-xl font-bold text-zinc-100 tracking-tight">
@@ -59,9 +69,10 @@ export default async function AccountDetailPage({
             </div>
           </div>
           <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${meta.bg} ${meta.color} shrink-0`}
+            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${visual.bg} ${visual.color} shrink-0`}
+            style={visual.customBadgeStyle}
           >
-            {meta.label}
+            {visual.label}
           </span>
         </div>
 

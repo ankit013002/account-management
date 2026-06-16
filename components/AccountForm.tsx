@@ -13,7 +13,13 @@ import {
   RefreshCw,
   ChevronDown,
 } from "lucide-react";
-import { CATEGORIES as CAT_LIST, getCategoryMeta } from "@/lib/utils";
+import {
+  ACCENT_PRESETS,
+  CATEGORIES as CAT_LIST,
+  getAccountVisual,
+  getCategoryMeta,
+  suggestAccountCategory,
+} from "@/lib/utils";
 import type { AccountPublic } from "@/lib/db";
 import { getPasswordStrength, generatePassword } from "@/lib/password";
 import { useToast } from "./ToastProvider";
@@ -41,6 +47,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
     password: account?.password ?? "",
     url: account?.url ?? "",
     category: account?.category ?? "other",
+    customColor: account?.customColor ?? "",
     notes: account?.notes ?? "",
     tags: account?.tags?.join(", ") ?? "",
     recoveryEmail: account?.recoveryEmail ?? "",
@@ -49,6 +56,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
   });
   const [showPw, setShowPw] = useState(false);
   const [copiedPw, setCopiedPw] = useState(false);
+  const [categoryTouched, setCategoryTouched] = useState(mode === "edit");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPasswordOptions, setShowPasswordOptions] = useState(false);
@@ -62,9 +70,27 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
   });
 
   const strength = getPasswordStrength(form.password);
+  const visual = getAccountVisual(form);
+  const suggestedCategory = suggestAccountCategory(form);
+  const suggestedMeta = getCategoryMeta(suggestedCategory);
 
   function set(field: keyof typeof form, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  function setWithSuggestion(field: "name" | "url", value: string) {
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+      if (!categoryTouched) {
+        next.category = suggestAccountCategory(next);
+      }
+      return next;
+    });
+  }
+
+  function applySuggestedCategory() {
+    setForm((current) => ({ ...current, category: suggestedCategory }));
+    setCategoryTouched(false);
   }
 
   function setBoolean(field: keyof typeof form, value: boolean) {
@@ -152,7 +178,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-4">
         <div>
           <label className={LABEL}>
             Account Name <span className="text-red-400">*</span>
@@ -160,7 +186,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
           <input
             type="text"
             value={form.name}
-            onChange={(e) => set("name", e.target.value)}
+            onChange={(e) => setWithSuggestion("name", e.target.value)}
             placeholder="Gmail, Amazon, Netflix..."
             className={FIELD}
           />
@@ -169,7 +195,10 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
           <label className={LABEL}>Category</label>
           <select
             value={form.category}
-            onChange={(e) => set("category", e.target.value)}
+            onChange={(e) => {
+              setCategoryTouched(true);
+              set("category", e.target.value);
+            }}
             className={FIELD}
             style={{ backgroundImage: "none" }}
           >
@@ -182,6 +211,73 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
               );
             })}
           </select>
+        </div>
+        <div>
+          <label className={LABEL}>Accent</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={form.customColor || visual.accent}
+              onChange={(e) => set("customColor", e.target.value)}
+              className="h-10 w-12 shrink-0 cursor-pointer rounded-xl border border-zinc-800/60 bg-zinc-900/60 p-1"
+              title="Custom card color"
+            />
+            {form.customColor && (
+              <button
+                type="button"
+                onClick={() => set("customColor", "")}
+                className="rounded-lg border border-zinc-800/60 px-2 py-2 text-xs font-medium text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-300"
+              >
+                Auto
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {ACCENT_PRESETS.map((preset) => {
+          const active = form.customColor === preset.color;
+          return (
+            <button
+              key={preset.color}
+              type="button"
+              onClick={() => set("customColor", preset.color)}
+              className={`h-6 w-6 rounded-full border transition-all ${
+                active
+                  ? "border-zinc-100 ring-2 ring-zinc-600/50"
+                  : "border-zinc-800 hover:border-zinc-500"
+              }`}
+              style={{ backgroundColor: preset.color }}
+              title={preset.name}
+              aria-label={`Use ${preset.name} accent`}
+            />
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-3 rounded-2xl border border-zinc-800/60 bg-zinc-950/30 px-3 py-3">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-bold ${visual.bg}`}
+          style={visual.customBadgeStyle}
+        >
+          {visual.icon}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold text-zinc-300">
+            {visual.brandLabel
+              ? `${visual.brandLabel} - ${getCategoryMeta(form.category).label}`
+              : `${visual.label} card`}
+          </p>
+          {suggestedCategory !== form.category && (
+            <button
+              type="button"
+              onClick={applySuggestedCategory}
+              className="mt-1 inline-flex rounded-md border border-zinc-800/60 px-2 py-0.5 text-[11px] font-medium text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-300"
+            >
+              Use {suggestedMeta.label}
+            </button>
+          )}
         </div>
       </div>
 
@@ -382,7 +478,7 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
         <input
           type="url"
           value={form.url}
-          onChange={(e) => set("url", e.target.value)}
+          onChange={(e) => setWithSuggestion("url", e.target.value)}
           placeholder="https://gmail.com"
           className={FIELD}
         />

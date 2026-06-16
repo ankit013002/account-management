@@ -5,7 +5,9 @@ import {
   deleteAccount,
   getDecryptedAccount,
   recordAuditEvent,
+  CATEGORIES,
 } from "@/lib/db";
+import { normalizeHexColor } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +36,12 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
+  if (body.category && !CATEGORIES.includes(body.category)) {
+    return Response.json({ error: "Invalid category" }, { status: 400 });
+  }
+  if (body.customColor) {
+    body.customColor = normalizeHexColor(body.customColor);
+  }
   const updated = await updateAccount(id, body);
   if (!updated) {
     return Response.json({ error: "Account not found" }, { status: 404 });

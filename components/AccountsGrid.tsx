@@ -9,6 +9,7 @@ import {
   UserRound,
   Link2,
   RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import AccountCard from "./AccountCard";
@@ -28,6 +29,7 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   function cycleSort(key: SortKey) {
     if (sortKey === key) {
@@ -85,6 +87,34 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
     }
     return counts;
   }, [accounts]);
+
+  const categoryFilters = useMemo(() => {
+    const used = CATEGORIES.map((category) => ({
+      category,
+      count: categoryCounts[category] ?? 0,
+      meta: getCategoryMeta(category),
+    }))
+      .filter((item) => item.count > 0)
+      .sort((a, b) => {
+        const countDelta = b.count - a.count;
+        if (countDelta !== 0) return countDelta;
+        return a.meta.label.localeCompare(b.meta.label);
+      });
+
+    if (showAllCategories || used.length <= 8) return used;
+
+    const visible = used.slice(0, 8);
+    const active = used.find((item) => item.category === activeCategory);
+    if (active && !visible.some((item) => item.category === active.category)) {
+      return [...visible.slice(0, 7), active];
+    }
+    return visible;
+  }, [activeCategory, categoryCounts, showAllCategories]);
+
+  const usedCategoryCount = useMemo(
+    () => CATEGORIES.filter((cat) => (categoryCounts[cat] ?? 0) > 0).length,
+    [categoryCounts],
+  );
 
   const quickFilters: {
     key: QuickFilter;
@@ -187,10 +217,7 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
         >
           All · {categoryCounts.all}
         </button>
-        {CATEGORIES.map((cat) => {
-          const meta = getCategoryMeta(cat);
-          const count = categoryCounts[cat] ?? 0;
-          if (count === 0) return null;
+        {categoryFilters.map(({ category: cat, count, meta }) => {
           return (
             <button
               key={cat}
@@ -205,6 +232,20 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
             </button>
           );
         })}
+        {usedCategoryCount > 8 && (
+          <button
+            type="button"
+            onClick={() => setShowAllCategories((open) => !open)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800/60 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-all hover:border-zinc-700 hover:text-zinc-300"
+          >
+            {showAllCategories ? "Less" : `More (${usedCategoryCount - 8})`}
+            <ChevronDown
+              className={`h-3 w-3 transition-transform ${
+                showAllCategories ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">

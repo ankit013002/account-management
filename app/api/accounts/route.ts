@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { getAllAccounts, createAccount, CATEGORIES } from "@/lib/db";
+import { normalizeHexColor } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest) {
     password,
     url,
     category,
+    customColor,
     notes,
     tags,
     recoveryEmail,
@@ -42,6 +44,7 @@ export async function POST(request: NextRequest) {
     password: password ?? "",
     url: (url ?? "").trim(),
     category: category ?? "other",
+    customColor: normalizeHexColor(customColor),
     notes: (notes ?? "").trim(),
     tags: Array.isArray(tags)
       ? tags.map((tag) => String(tag).trim()).filter(Boolean)

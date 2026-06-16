@@ -10,6 +10,26 @@ export const CATEGORIES = [
   "work",
   "gaming",
   "streaming",
+  "productivity",
+  "cloud",
+  "developer",
+  "ai",
+  "education",
+  "travel",
+  "food",
+  "health",
+  "government",
+  "utilities",
+  "crypto",
+  "insurance",
+  "telecom",
+  "home",
+  "news",
+  "music",
+  "creator",
+  "security",
+  "brand",
+  "custom",
   "other",
 ] as const;
 
@@ -23,6 +43,7 @@ export interface Account {
   password: string; // stored encrypted
   url: string;
   category: Category;
+  customColor: string;
   notes: string;
   tags: string[];
   recoveryEmail: string;
@@ -40,6 +61,7 @@ export interface AccountInput {
   password: string; // plain text
   url: string;
   category: Category;
+  customColor?: string;
   notes: string;
   tags?: string[];
   recoveryEmail?: string;
@@ -73,6 +95,7 @@ const accountSchema = new Schema<Account>(
       enum: CATEGORIES,
       default: "other",
     },
+    customColor: { type: String, default: "" },
     notes: { type: String, default: "" },
     tags: { type: [String], default: [] },
     recoveryEmail: { type: String, default: "" },
@@ -121,6 +144,7 @@ function toAccount(doc: Account): Account {
     password: doc.password ?? "",
     url: doc.url ?? "",
     category: doc.category ?? "other",
+    customColor: doc.customColor ?? "",
     notes: doc.notes ?? "",
     tags: doc.tags ?? [],
     recoveryEmail: doc.recoveryEmail ?? "",
@@ -180,6 +204,7 @@ export async function createAccount(
     password: input.password ? encrypt(input.password) : "",
     url: input.url,
     category: input.category,
+    customColor: input.customColor ?? "",
     notes: input.notes,
     tags: input.tags ?? [],
     recoveryEmail: input.recoveryEmail ?? "",
@@ -209,6 +234,7 @@ export async function updateAccount(
     password: input.password ? encrypt(input.password) : existing.password,
     url: input.url ?? existing.url,
     category: input.category ?? existing.category,
+    customColor: input.customColor ?? existing.customColor ?? "",
     notes: input.notes ?? existing.notes,
     tags: input.tags ?? existing.tags ?? [],
     recoveryEmail: input.recoveryEmail ?? existing.recoveryEmail ?? "",

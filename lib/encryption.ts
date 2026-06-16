@@ -1,20 +1,11 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { getEncryptionKey } from "./secrets";
 
 const ALGORITHM = "aes-256-gcm";
 
-function getKey(): Buffer {
-  const keyHex = process.env.ENCRYPTION_KEY;
-  if (keyHex && keyHex.length === 64) {
-    return Buffer.from(keyHex, "hex");
-  }
-  // Fallback: derive a consistent 32-byte key from a fixed string
-  // In production, always set ENCRYPTION_KEY in .env.local
-  return Buffer.from("account-mgmt-default-key-32bytes", "utf8");
-}
-
 export function encrypt(text: string): string {
   if (!text) return "";
-  const key = getKey();
+  const key = getEncryptionKey();
   const iv = randomBytes(12);
   const cipher = createCipheriv(ALGORITHM, key, iv);
 
@@ -40,7 +31,7 @@ export function decrypt(encryptedData: string): string {
   }
 
   const [ivHex, authTagHex, encryptedHex] = parts;
-  const key = getKey();
+  const key = getEncryptionKey();
   const iv = Buffer.from(ivHex, "hex");
   const authTag = Buffer.from(authTagHex, "hex");
   const encrypted = Buffer.from(encryptedHex, "hex");

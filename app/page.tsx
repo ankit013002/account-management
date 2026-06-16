@@ -8,7 +8,7 @@ import PasswordHealthPanel from "@/components/PasswordHealthPanel";
 import AuditLogPanel from "@/components/AuditLogPanel";
 import Link from "next/link";
 import { PlusCircle, KeyRound, Layers, MessageSquare } from "lucide-react";
-import { getCategoryMeta } from "@/lib/utils";
+import { getAccountVisual } from "@/lib/utils";
 import { getPasswordHealthReport } from "@/lib/passwordHealth";
 
 export const dynamic = "force-dynamic";
@@ -85,14 +85,19 @@ export default async function DashboardPage() {
           </h2>
           <div className="flex flex-wrap gap-2">
             {recentAccounts.map((a) => {
-              const meta = getCategoryMeta(a.category);
+              const visual = getAccountVisual(a);
               return (
                 <Link
                   key={a.id}
                   href={`/accounts/${a.id}`}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/60 hover:border-zinc-700 hover:bg-zinc-800/60 text-zinc-300 hover:text-zinc-100 text-sm transition-all"
                 >
-                  <span>{meta.icon}</span>
+                  <span
+                    className={`flex h-6 w-6 items-center justify-center rounded-lg border text-[10px] font-bold ${visual.bg}`}
+                    style={visual.customBadgeStyle}
+                  >
+                    {visual.icon}
+                  </span>
                   <span className="font-medium">{a.name}</span>
                 </Link>
               );

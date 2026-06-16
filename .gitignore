@@ -42,3 +42,4 @@ next-env.d.ts
 
 # user data
 data/accounts.json
+data/snapshots/

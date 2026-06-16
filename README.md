@@ -42,9 +42,17 @@ Create a `.env.local` file in the project root:
 
 ```env
 MONGODB_URI=mongodb://127.0.0.1:27017/account-management
+MONGODB_LOCAL_URI=mongodb://127.0.0.1:27017/account-management
 ENCRYPTION_KEY=replace-with-a-64-character-hex-key
 OLLAMA_URL=http://localhost:11434
 MASTER_PASSWORD=choose-a-local-master-password
+```
+
+For MongoDB Atlas, use the connection string from Atlas and include the
+database name before the query string:
+
+```env
+MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/account-management?retryWrites=true&w=majority&appName=DevPulse
 ```
 
 Generate a suitable encryption key with Node:
@@ -53,7 +61,8 @@ Generate a suitable encryption key with Node:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Start MongoDB, then run the development server:
+Start MongoDB, or confirm your Atlas cluster is reachable, then run the
+development server:
 
 ```bash
 npm run dev
@@ -110,6 +119,59 @@ npm run test:mongo
 
 Starts a temporary Next.js test server, uses a throwaway MongoDB database, verifies the account API flow, confirms saved passwords are encrypted in MongoDB, and drops the test database afterward. MongoDB must be running and `mongosh` must be available on your PATH.
 
+```bash
+npm run migrate:atlas
+```
+
+Checks how many local `accounts` and `audit_events` documents would be copied
+from local MongoDB into the Atlas database configured by `MONGODB_URI`. This is
+a dry run and does not write anything.
+
+```bash
+npm run migrate:atlas -- --apply
+```
+
+Copies encrypted local MongoDB records into Atlas. The script preserves app-level
+record IDs and upserts by `id`, so running it again updates matching records
+instead of creating duplicate accounts. Set `MONGODB_LOCAL_URI` if your local
+database is not `mongodb://127.0.0.1:27017/account-management`.
+
+If your shell does not pass `--apply` through `npm run`, use:
+
+```bash
+npm run migrate:atlas:apply
+```
+
+```bash
+npm run snapshot:atlas
+```
+
+Creates an encrypted local snapshot file under `data/snapshots/` from the Atlas
+database configured by `MONGODB_URI`. Snapshot files are ignored by git.
+
+```bash
+npm run snapshot:restore-local -- --file data/snapshots/SNAPSHOT_FILE.json
+```
+
+Checks how many records from a snapshot would be restored into local MongoDB.
+This is a dry run and does not write anything.
+
+```bash
+npm run snapshot:restore-local -- --file data/snapshots/SNAPSHOT_FILE.json --apply
+```
+
+Restores the encrypted snapshot into local MongoDB by upserting `accounts` and
+`audit_events` by `id`. Set `MONGODB_LOCAL_URI` if your local MongoDB is not
+`mongodb://127.0.0.1:27017/account-management`.
+
+To run offline from local MongoDB after restoring a snapshot, set:
+
+```env
+MONGODB_OFFLINE=true
+```
+
+Remove that line or set it to `false` when you want the app to use Atlas again.
+
 ## Project Structure
 
 ```text
@@ -122,11 +184,20 @@ public/               Static assets
 
 ## Security Notes
 
-Set `ENCRYPTION_KEY` before storing real passwords. The app has a development fallback key, but that fallback should not be used for private or production data.
+Set `ENCRYPTION_KEY` before storing real passwords. The app refuses to encrypt,
+decrypt, export backups, or import backups without a valid 64-character hex key.
+Keep this key unchanged for existing data; changing it prevents previously saved
+passwords and backups from decrypting.
 
 Set `MASTER_PASSWORD` or `MASTER_PASSWORD_HASH` to require unlocking the vault before viewing pages or calling account APIs.
 
-Passwords are decrypted for account detail views and for the local assistant context. Run this project only in an environment you trust, and keep `.env.local` out of version control.
+Passwords are decrypted for account detail views and for the local assistant
+context. Run this project only in an environment you trust, and keep `.env.local`
+out of version control.
+
+Prefer encrypted JSON exports from the backup controls for local emergency
+snapshots instead of keeping a second live MongoDB instance with replicated
+password vault data.
 
 ## Deployment
 

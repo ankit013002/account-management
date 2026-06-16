@@ -1,7 +1,18 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/account-management";
+const DEFAULT_LOCAL_URI = "mongodb://127.0.0.1:27017/account-management";
+
+function getMongoUri() {
+  if (process.env.MONGODB_OFFLINE === "true") {
+    return (
+      process.env.MONGODB_LOCAL_URI ||
+      process.env.LOCAL_MONGODB_URI ||
+      DEFAULT_LOCAL_URI
+    );
+  }
+
+  return process.env.MONGODB_URI || DEFAULT_LOCAL_URI;
+}
 
 type MongooseCache = {
   conn: typeof mongoose | null;
@@ -22,7 +33,7 @@ globalForMongoose.mongooseCache = cached;
 export async function connectToDatabase() {
   if (cached.conn) return cached.conn;
 
-  cached.promise ??= mongoose.connect(MONGODB_URI, {
+  cached.promise ??= mongoose.connect(getMongoUri(), {
     bufferCommands: false,
   });
   cached.conn = await cached.promise;

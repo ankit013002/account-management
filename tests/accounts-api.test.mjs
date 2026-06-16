@@ -133,7 +133,7 @@ test("rejects account creation without a name", async () => {
 test("rejects account creation with an invalid category", async () => {
   const { response, body } = await request("/api/accounts", {
     method: "POST",
-    body: JSON.stringify({ name: "Invalid Category", category: "travel" }),
+    body: JSON.stringify({ name: "Invalid Category", category: "spaceport" }),
   });
 
   assert.equal(response.status, 400);

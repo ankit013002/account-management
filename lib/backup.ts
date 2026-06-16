@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 import type { Account } from "./db";
+import { getEncryptionKey } from "./secrets";
 
 const ALGORITHM = "aes-256-gcm";
 
@@ -17,17 +18,9 @@ export interface EncryptedBackup {
   data: string;
 }
 
-function getBackupKey(): Buffer {
-  const keyHex = process.env.ENCRYPTION_KEY;
-  if (keyHex && keyHex.length === 64) {
-    return Buffer.from(keyHex, "hex");
-  }
-  return Buffer.from("account-mgmt-default-key-32bytes", "utf8");
-}
-
 export function encryptBackup(payload: BackupPayload): EncryptedBackup {
   const iv = randomBytes(12);
-  const cipher = createCipheriv(ALGORITHM, getBackupKey(), iv);
+  const cipher = createCipheriv(ALGORITHM, getEncryptionKey(), iv);
   const encrypted = Buffer.concat([
     cipher.update(JSON.stringify(payload), "utf8"),
     cipher.final(),
@@ -49,7 +42,7 @@ export function decryptBackup(backup: EncryptedBackup): BackupPayload {
 
   const decipher = createDecipheriv(
     ALGORITHM,
-    getBackupKey(),
+    getEncryptionKey(),
     Buffer.from(backup.iv, "hex"),
   );
   decipher.setAuthTag(Buffer.from(backup.authTag, "hex"));

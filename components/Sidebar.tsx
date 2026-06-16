@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import LockButton from "./LockButton";
 import BackupControls from "./BackupControls";
+import SnapshotControls from "./SnapshotControls";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -115,6 +116,7 @@ function SidebarContent({
           </span>
         </div>
         <BackupControls />
+        <SnapshotControls />
         <LockButton />
       </div>
     </>

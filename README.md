@@ -12,6 +12,11 @@ A private account-management dashboard built with Next.js. It stores account det
 - Optional local AI assistant backed by Ollama and `llama3.1:latest`
 - MongoDB persistence through Mongoose
 - Encrypted JSON backup import and export
+- Command Center for subscriptions, documents, devices, contacts, and emergency notes
+- Today view for overdue items, upcoming renewals, subscription spend, recent activity, and security focus
+- Printable Emergency Kit for critical accounts, contacts, documents, devices, and recovery steps
+- Security Review for accounts missing passwords, login details, 2FA, recovery email, or URLs
+- Chrome extension companion for sending the current tab to the add-account form and opening saved site matches
 
 ## Tech Stack
 
@@ -20,7 +25,7 @@ A private account-management dashboard built with Next.js. It stores account det
 - TypeScript
 - Tailwind CSS 4
 - MongoDB with Mongoose
-- Lucide React icons
+- Lucide React and Font Awesome icons
 - Ollama for the local assistant
 
 ## Requirements
@@ -69,6 +74,24 @@ npm run dev
 ```
 
 Open `http://localhost:3000` in your browser.
+
+## Chrome Extension Companion
+
+The `extension/` folder contains an unpacked Chrome extension that opens the
+current browser tab in the app's add-account form. It also checks the running
+app for saved accounts that match the current domain and links directly to them.
+
+To install it locally:
+
+1. Start the app with `npm run dev`.
+2. Open `chrome://extensions`.
+3. Enable Developer mode.
+4. Click Load unpacked.
+5. Select the `extension/` folder in this repo.
+
+The extension defaults to `http://localhost:3000`. To point it somewhere else,
+right-click the extension icon, choose Options, and update the Account Manager
+URL.
 
 ## Ollama Setup
 

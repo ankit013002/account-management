@@ -1,12 +1,28 @@
-import { getAccountById, getDecryptedAccount } from "@/lib/db";
+import {
+  getAccountById,
+  getDecryptedAccount,
+  getVaultItemsByAccountId,
+} from "@/lib/db";
 import { getAccountVisual, formatUrl, getDomain } from "@/lib/utils";
 import PasswordField from "@/components/PasswordField";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Pencil, Calendar } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Pencil,
+  Calendar,
+  Boxes,
+  CreditCard,
+  FileText,
+  HardDrive,
+  Contact,
+  HeartHandshake,
+} from "lucide-react";
 import DeleteAccountButton from "./DeleteAccountButton";
 import CopyInlineButton from "./CopyInlineButton";
 import FavoriteButton from "@/components/FavoriteButton";
+import AccountVisualIcon from "@/components/AccountVisualIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +34,7 @@ export default async function AccountDetailPage({
   const { id } = await params;
   const raw = await getAccountById(id);
   if (!raw) notFound();
+  const linkedItems = await getVaultItemsByAccountId(id);
   const account = getDecryptedAccount(raw);
   const visual = getAccountVisual(account);
 
@@ -49,7 +66,14 @@ export default async function AccountDetailPage({
               className={`w-14 h-14 rounded-2xl flex items-center justify-center text-base font-bold border ${visual.bg}`}
               style={visual.customBadgeStyle}
             >
-              {visual.icon}
+              <AccountVisualIcon
+                category={account.category}
+                fallback={visual.icon}
+                name={account.name}
+                url={account.url}
+                brandLabel={visual.brandLabel}
+                className="h-6 w-6"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold text-zinc-100 tracking-tight">
@@ -204,8 +228,67 @@ export default async function AccountDetailPage({
           </div>
         </DetailRow>
       </div>
+
+      <div className="mt-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/60 p-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">
+              Linked Command Center Items
+            </h2>
+            <p className="mt-0.5 text-xs text-zinc-600">
+              Subscriptions, documents, devices, contacts, and emergency notes
+              connected to this account.
+            </p>
+          </div>
+          <Link
+            href={`/command-center?accountId=${account.id}&title=${encodeURIComponent(account.name)}&url=${encodeURIComponent(account.url)}`}
+            className="rounded-lg border border-zinc-800/60 px-2 py-1 text-xs font-medium text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-300"
+          >
+            Add link
+          </Link>
+        </div>
+        {linkedItems.length === 0 ? (
+          <p className="rounded-xl border border-zinc-800/60 bg-zinc-950/30 px-3 py-4 text-center text-sm text-zinc-600">
+            No linked command-center items yet.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {linkedItems.map((item) => (
+              <Link
+                key={item.id}
+                href={`/command-center?q=${encodeURIComponent(item.title)}`}
+                className="rounded-xl border border-zinc-800/60 bg-zinc-950/30 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-950/50"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-indigo-500/20 bg-indigo-500/10 text-indigo-300">
+                    <LinkedItemIcon type={item.type} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-zinc-200">
+                      {item.title}
+                    </p>
+                    <p className="text-xs capitalize text-zinc-600">
+                      {item.type} - {item.status}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
+}
+
+function LinkedItemIcon({ type }: { type: string }) {
+  const className = "h-3.5 w-3.5";
+  if (type === "subscription") return <CreditCard className={className} />;
+  if (type === "document") return <FileText className={className} />;
+  if (type === "device") return <HardDrive className={className} />;
+  if (type === "contact") return <Contact className={className} />;
+  if (type === "emergency") return <HeartHandshake className={className} />;
+  return <Boxes className={className} />;
 }
 
 function DetailRow({

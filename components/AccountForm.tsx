@@ -22,10 +22,16 @@ import {
 } from "@/lib/utils";
 import type { AccountPublic } from "@/lib/db";
 import { getPasswordStrength, generatePassword } from "@/lib/password";
+import AccountVisualIcon from "./AccountVisualIcon";
 import { useToast } from "./ToastProvider";
 
 interface AccountFormProps {
   account?: AccountPublic & { password?: string };
+  initialValues?: {
+    name?: string;
+    url?: string;
+    tags?: string;
+  };
   mode: "create" | "edit";
 }
 
@@ -37,19 +43,29 @@ const LABEL = "text-xs font-medium text-zinc-500 mb-1.5 block";
 const TOGGLE =
   "flex items-center gap-2 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-3 py-2 text-xs font-medium text-zinc-400 transition-all hover:border-zinc-700 hover:text-zinc-200";
 
-export default function AccountForm({ account, mode }: AccountFormProps) {
+export default function AccountForm({
+  account,
+  initialValues,
+  mode,
+}: AccountFormProps) {
   const router = useRouter();
   const toast = useToast();
+  const initialName = account?.name ?? initialValues?.name ?? "";
+  const initialUrl = account?.url ?? initialValues?.url ?? "";
+  const initialCategory = account?.category ?? suggestAccountCategory({
+    name: initialName,
+    url: initialUrl,
+  });
   const [form, setForm] = useState({
-    name: account?.name ?? "",
+    name: initialName,
     username: account?.username ?? "",
     email: account?.email ?? "",
     password: account?.password ?? "",
-    url: account?.url ?? "",
-    category: account?.category ?? "other",
+    url: initialUrl,
+    category: initialCategory,
     customColor: account?.customColor ?? "",
     notes: account?.notes ?? "",
-    tags: account?.tags?.join(", ") ?? "",
+    tags: account?.tags?.join(", ") ?? initialValues?.tags ?? "",
     recoveryEmail: account?.recoveryEmail ?? "",
     backupCodes: account?.backupCodes ?? "",
     twoFactorEnabled: account?.twoFactorEnabled ?? false,
@@ -261,7 +277,14 @@ export default function AccountForm({ account, mode }: AccountFormProps) {
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-bold ${visual.bg}`}
           style={visual.customBadgeStyle}
         >
-          {visual.icon}
+          <AccountVisualIcon
+            category={form.category}
+            fallback={visual.icon}
+            name={form.name}
+            url={form.url}
+            brandLabel={visual.brandLabel}
+            className="h-4 w-4"
+          />
         </span>
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold text-zinc-300">

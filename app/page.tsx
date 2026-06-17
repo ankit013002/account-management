@@ -6,9 +6,20 @@ import {
 import AccountsGrid from "@/components/AccountsGrid";
 import PasswordHealthPanel from "@/components/PasswordHealthPanel";
 import AuditLogPanel from "@/components/AuditLogPanel";
+import AccountVisualIcon from "@/components/AccountVisualIcon";
 import Link from "next/link";
-import { PlusCircle, KeyRound, Layers, MessageSquare } from "lucide-react";
-import { getAccountVisual } from "@/lib/utils";
+import {
+  PlusCircle,
+  KeyRound,
+  Layers,
+  MessageSquare,
+  AlertTriangle,
+  Boxes,
+  ShieldCheck,
+  CalendarClock,
+  HeartHandshake,
+} from "lucide-react";
+import { getAccountVisual, isAccountNeedsReview } from "@/lib/utils";
 import { getPasswordHealthReport } from "@/lib/passwordHealth";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +36,7 @@ export default async function DashboardPage() {
     total: accounts.length,
     withPassword: accounts.filter((a) => a.hasPassword).length,
     categories: [...new Set(accounts.map((a) => a.category))].length,
+    needsReview: accounts.filter((a) => isAccountNeedsReview(a)).length,
   };
 
   const recentAccounts = [...accounts]
@@ -56,7 +68,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Total Accounts"
           value={stats.total}
@@ -74,6 +86,12 @@ export default async function DashboardPage() {
           value={stats.categories}
           icon={<Layers className="w-4 h-4" />}
           accent="violet"
+        />
+        <StatCard
+          label="Review Queue"
+          value={stats.needsReview}
+          icon={<AlertTriangle className="w-4 h-4" />}
+          accent="amber"
         />
       </div>
 
@@ -96,7 +114,14 @@ export default async function DashboardPage() {
                     className={`flex h-6 w-6 items-center justify-center rounded-lg border text-[10px] font-bold ${visual.bg}`}
                     style={visual.customBadgeStyle}
                   >
-                    {visual.icon}
+                    <AccountVisualIcon
+                      category={a.category}
+                      fallback={visual.icon}
+                      name={a.name}
+                      url={a.url}
+                      brandLabel={visual.brandLabel}
+                      className="h-3 w-3"
+                    />
                   </span>
                   <span className="font-medium">{a.name}</span>
                 </Link>
@@ -135,6 +160,33 @@ export default async function DashboardPage() {
 
       {stats.total > 0 && <AuditLogPanel events={auditEvents} />}
 
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <HubCard
+          href="/today"
+          icon={<CalendarClock className="h-4 w-4" />}
+          title="Today"
+          body="A daily action view for overdue items, upcoming renewals, security fixes, and recent activity."
+        />
+        <HubCard
+          href="/command-center"
+          icon={<Boxes className="h-4 w-4" />}
+          title="Command Center"
+          body="Track subscriptions, documents, devices, contacts, emergency notes, renewals, and linked accounts."
+        />
+        <HubCard
+          href="/security"
+          icon={<ShieldCheck className="h-4 w-4" />}
+          title="Security Review"
+          body="See accounts missing passwords, login details, 2FA, recovery emails, or URLs."
+        />
+        <HubCard
+          href="/emergency-kit"
+          icon={<HeartHandshake className="h-4 w-4" />}
+          title="Emergency Kit"
+          body="A printable, password-free recovery map for critical accounts, contacts, documents, and devices."
+        />
+      </div>
+
       {/* Accounts grid */}
       <div>
         <h2 className="text-xs font-semibold text-zinc-600 uppercase tracking-widest mb-4">
@@ -143,6 +195,31 @@ export default async function DashboardPage() {
         <AccountsGrid accounts={accounts} />
       </div>
     </div>
+  );
+}
+
+function HubCard({
+  href,
+  icon,
+  title,
+  body,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-2xl border border-zinc-800/60 bg-zinc-900/50 p-4 transition-all hover:-translate-y-0.5 hover:border-zinc-700 hover:bg-zinc-900"
+    >
+      <span className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-300">
+        {icon}
+      </span>
+      <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
+      <p className="mt-1 text-sm leading-relaxed text-zinc-500">{body}</p>
+    </Link>
   );
 }
 
@@ -155,7 +232,7 @@ function StatCard({
   label: string;
   value: number;
   icon: React.ReactNode;
-  accent: "indigo" | "emerald" | "violet";
+  accent: "indigo" | "emerald" | "violet" | "amber";
 }) {
   const colors = {
     indigo: {
@@ -175,6 +252,12 @@ function StatCard({
       bg: "bg-violet-500/10",
       border: "border-violet-500/20",
       icon: "text-violet-400",
+    },
+    amber: {
+      text: "text-amber-400",
+      bg: "bg-amber-500/10",
+      border: "border-amber-500/20",
+      icon: "text-amber-400",
     },
   };
   const c = colors[accent];

@@ -19,6 +19,7 @@ import {
   formatUrl,
 } from "@/lib/utils";
 import type { AccountPublic } from "@/lib/db";
+import AccountVisualIcon from "./AccountVisualIcon";
 import FavoriteButton from "./FavoriteButton";
 
 interface AccountCardProps {
@@ -101,7 +102,14 @@ export default function AccountCard({ account }: AccountCardProps) {
             className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold border ${visual.bg} shrink-0`}
             style={visual.customBadgeStyle}
           >
-            {visual.icon}
+            <AccountVisualIcon
+              category={account.category}
+              fallback={visual.icon}
+              name={account.name}
+              url={account.url}
+              brandLabel={visual.brandLabel}
+              className="h-4 w-4"
+            />
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-zinc-100 text-sm leading-tight truncate">

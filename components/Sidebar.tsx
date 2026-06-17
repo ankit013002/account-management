@@ -11,6 +11,10 @@ import {
   Menu,
   X,
   Lock,
+  ShieldCheck,
+  Boxes,
+  CalendarClock,
+  HeartHandshake,
 } from "lucide-react";
 import LockButton from "./LockButton";
 import BackupControls from "./BackupControls";
@@ -18,12 +22,26 @@ import SnapshotControls from "./SnapshotControls";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/today", label: "Today", icon: CalendarClock, exact: false },
   {
     href: "/accounts/new",
     label: "Add Account",
     icon: PlusCircle,
     exact: false,
   },
+  {
+    href: "/command-center",
+    label: "Command Center",
+    icon: Boxes,
+    exact: false,
+  },
+  {
+    href: "/emergency-kit",
+    label: "Emergency Kit",
+    icon: HeartHandshake,
+    exact: false,
+  },
+  { href: "/security", label: "Security Review", icon: ShieldCheck, exact: false },
   { href: "/chat", label: "AI Assistant", icon: MessageSquare, exact: false },
 ];
 

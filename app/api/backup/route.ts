@@ -1,15 +1,24 @@
-import { getAllAccountsRaw, importAccounts } from "@/lib/db";
+import {
+  getAllAccountsRaw,
+  getAllVaultItems,
+  importAccounts,
+  importVaultItems,
+} from "@/lib/db";
 import { decryptBackup, encryptBackup, type EncryptedBackup } from "@/lib/backup";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const accounts = await getAllAccountsRaw();
+  const [accounts, vaultItems] = await Promise.all([
+    getAllAccountsRaw(),
+    getAllVaultItems(),
+  ]);
   const backup = encryptBackup({
     version: 1,
     exportedAt: new Date().toISOString(),
     accounts,
+    vaultItems,
   });
 
   return Response.json(backup, {
@@ -24,7 +33,8 @@ export async function POST(request: Request) {
     const backup = (await request.json()) as EncryptedBackup;
     const payload = decryptBackup(backup);
     const imported = await importAccounts(payload.accounts);
-    return Response.json({ imported });
+    const importedVaultItems = await importVaultItems(payload.vaultItems ?? []);
+    return Response.json({ imported, importedVaultItems });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid backup";
     return Response.json({ error: message }, { status: 400 });

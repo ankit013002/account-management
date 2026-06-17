@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Vault Account Manager",
+  "description": "Send the current browser tab to your local Account Manager.",
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Save to Account Manager"
+  },
+  "options_page": "options.html",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["http://localhost:*/*", "http://127.0.0.1:*/*"]
+}

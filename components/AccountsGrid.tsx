@@ -10,10 +10,15 @@ import {
   Link2,
   RotateCcw,
   ChevronDown,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import AccountCard from "./AccountCard";
-import { CATEGORIES, getCategoryMeta } from "@/lib/utils";
+import {
+  CATEGORIES,
+  getCategoryMeta,
+  isAccountNeedsReview,
+} from "@/lib/utils";
 import type { AccountPublic } from "@/lib/db";
 
 interface AccountsGridProps {
@@ -21,7 +26,15 @@ interface AccountsGridProps {
 }
 
 type SortKey = "name" | "createdAt" | "category";
-type QuickFilter = "all" | "withPassword" | "withoutPassword" | "missingLogin" | "missingUrl";
+type QuickFilter =
+  | "all"
+  | "needsReview"
+  | "withPassword"
+  | "withoutPassword"
+  | "missingLogin"
+  | "missingUrl"
+  | "missing2fa"
+  | "missingRecovery";
 
 export default function AccountsGrid({ accounts }: AccountsGridProps) {
   const [query, setQuery] = useState("");
@@ -47,12 +60,18 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
     }
     if (quickFilter === "withPassword") {
       result = result.filter((a) => a.hasPassword);
+    } else if (quickFilter === "needsReview") {
+      result = result.filter((a) => isAccountNeedsReview(a));
     } else if (quickFilter === "withoutPassword") {
       result = result.filter((a) => !a.hasPassword);
     } else if (quickFilter === "missingLogin") {
       result = result.filter((a) => !a.username && !a.email);
     } else if (quickFilter === "missingUrl") {
       result = result.filter((a) => !a.url);
+    } else if (quickFilter === "missing2fa") {
+      result = result.filter((a) => !a.twoFactorEnabled);
+    } else if (quickFilter === "missingRecovery") {
+      result = result.filter((a) => !a.recoveryEmail);
     }
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -124,6 +143,12 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
   }[] = [
     { key: "all", label: "Any", count: accounts.length, icon: Search },
     {
+      key: "needsReview",
+      label: "Review",
+      count: accounts.filter((a) => isAccountNeedsReview(a)).length,
+      icon: AlertTriangle,
+    },
+    {
       key: "withPassword",
       label: "Has password",
       count: accounts.filter((a) => a.hasPassword).length,
@@ -146,6 +171,18 @@ export default function AccountsGrid({ accounts }: AccountsGridProps) {
       label: "No URL",
       count: accounts.filter((a) => !a.url).length,
       icon: Link2,
+    },
+    {
+      key: "missing2fa",
+      label: "No 2FA",
+      count: accounts.filter((a) => !a.twoFactorEnabled).length,
+      icon: AlertTriangle,
+    },
+    {
+      key: "missingRecovery",
+      label: "No recovery",
+      count: accounts.filter((a) => !a.recoveryEmail).length,
+      icon: UserRound,
     },
   ];
 

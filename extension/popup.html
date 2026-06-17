@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vault Account Manager</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <div class="mark">V</div>
+        <div>
+          <h1>Vault</h1>
+          <p id="status">Ready</p>
+        </div>
+      </div>
+
+      <section class="site">
+        <span class="label">Current site</span>
+        <strong id="siteName">Loading...</strong>
+        <span id="siteUrl"></span>
+      </section>
+
+      <section class="matches" id="matches" hidden>
+        <span class="label">Saved matches</span>
+        <div id="matchesList"></div>
+      </section>
+
+      <button id="saveCurrent" type="button">Add current site</button>
+      <button id="trackCurrent" type="button" class="secondary">
+        Track in command center
+      </button>
+      <button id="openToday" type="button" class="secondary">Open today</button>
+      <button id="openVault" type="button" class="secondary">Open vault</button>
+      <button id="options" type="button" class="ghost">Settings</button>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

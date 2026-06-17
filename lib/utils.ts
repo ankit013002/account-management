@@ -309,6 +309,21 @@ export function getAccountQualityHints(account: {
   return hints;
 }
 
+export function isAccountNeedsReview(account: {
+  username?: string;
+  email?: string;
+  hasPassword?: boolean;
+  twoFactorEnabled?: boolean;
+  recoveryEmail?: string;
+}) {
+  return (
+    !account.hasPassword ||
+    (!account.username && !account.email) ||
+    !account.twoFactorEnabled ||
+    !account.recoveryEmail
+  );
+}
+
 export function normalizeHexColor(color?: string): string {
   if (!color) return "";
   const trimmed = color.trim();

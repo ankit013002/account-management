@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
-import type { Account } from "./db";
+import type { Account, VaultItem } from "./db";
 import { getEncryptionKey } from "./secrets";
 
 const ALGORITHM = "aes-256-gcm";
@@ -8,6 +8,7 @@ export interface BackupPayload {
   version: 1;
   exportedAt: string;
   accounts: Account[];
+  vaultItems?: VaultItem[];
 }
 
 export interface EncryptedBackup {

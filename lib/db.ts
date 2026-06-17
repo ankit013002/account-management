@@ -82,6 +82,51 @@ export interface AuditEvent {
   createdAt: string;
 }
 
+export const VAULT_ITEM_TYPES = [
+  "subscription",
+  "document",
+  "device",
+  "contact",
+  "emergency",
+] as const;
+
+export type VaultItemType = (typeof VAULT_ITEM_TYPES)[number];
+
+export interface VaultItem {
+  id: string;
+  type: VaultItemType;
+  title: string;
+  provider: string;
+  accountId: string;
+  url: string;
+  status: "active" | "watching" | "paused" | "archived";
+  monthlyCost: number;
+  dueDate: string;
+  renewalDate: string;
+  location: string;
+  identifier: string;
+  notes: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VaultItemInput {
+  type: VaultItemType;
+  title: string;
+  provider?: string;
+  accountId?: string;
+  url?: string;
+  status?: VaultItem["status"];
+  monthlyCost?: number;
+  dueDate?: string;
+  renewalDate?: string;
+  location?: string;
+  identifier?: string;
+  notes?: string;
+  tags?: string[];
+}
+
 const accountSchema = new Schema<Account>(
   {
     id: { type: String, required: true, unique: true, index: true },
@@ -135,6 +180,44 @@ const auditSchema = new Schema<AuditEvent>(
 const AuditModel =
   models.AuditEvent || model<AuditEvent>("AuditEvent", auditSchema);
 
+const vaultItemSchema = new Schema<VaultItem>(
+  {
+    id: { type: String, required: true, unique: true, index: true },
+    type: {
+      type: String,
+      enum: VAULT_ITEM_TYPES,
+      required: true,
+      index: true,
+    },
+    title: { type: String, required: true, trim: true },
+    provider: { type: String, default: "" },
+    accountId: { type: String, default: "", index: true },
+    url: { type: String, default: "" },
+    status: {
+      type: String,
+      enum: ["active", "watching", "paused", "archived"],
+      default: "active",
+      index: true,
+    },
+    monthlyCost: { type: Number, default: 0 },
+    dueDate: { type: String, default: "" },
+    renewalDate: { type: String, default: "" },
+    location: { type: String, default: "" },
+    identifier: { type: String, default: "" },
+    notes: { type: String, default: "" },
+    tags: { type: [String], default: [] },
+    createdAt: { type: String, required: true },
+    updatedAt: { type: String, required: true },
+  },
+  {
+    collection: "vault_items",
+    versionKey: false,
+  },
+);
+
+const VaultItemModel =
+  models.VaultItem || model<VaultItem>("VaultItem", vaultItemSchema);
+
 function toAccount(doc: Account): Account {
   return {
     id: doc.id,
@@ -164,10 +247,43 @@ function toPublic(account: Account): AccountPublic {
   };
 }
 
+function toVaultItem(doc: VaultItem): VaultItem {
+  return {
+    id: doc.id,
+    type: doc.type ?? "document",
+    title: doc.title,
+    provider: doc.provider ?? "",
+    accountId: doc.accountId ?? "",
+    url: doc.url ?? "",
+    status: doc.status ?? "active",
+    monthlyCost: Number(doc.monthlyCost ?? 0),
+    dueDate: doc.dueDate ?? "",
+    renewalDate: doc.renewalDate ?? "",
+    location: doc.location ?? "",
+    identifier: doc.identifier ?? "",
+    notes: doc.notes ?? "",
+    tags: doc.tags ?? [],
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
+}
+
 export async function getAllAccounts(): Promise<AccountPublic[]> {
   await connectToDatabase();
   const docs = await AccountModel.find().sort({ createdAt: -1 }).lean<Account[]>();
   return docs.map((doc) => toPublic(toAccount(doc)));
+}
+
+export async function getAccountsByDomain(
+  domain: string,
+): Promise<AccountPublic[]> {
+  const normalized = domain.toLowerCase().replace(/^www\./, "");
+  const accounts = await getAllAccounts();
+  if (!normalized) return [];
+  return accounts.filter((account) => {
+    const haystack = `${account.name} ${account.url}`.toLowerCase();
+    return haystack.includes(normalized);
+  });
 }
 
 export async function getAllAccountsRaw(): Promise<Account[]> {
@@ -278,6 +394,19 @@ export async function importAccounts(accounts: Account[]): Promise<number> {
   return count;
 }
 
+export async function importVaultItems(items: VaultItem[]): Promise<number> {
+  await connectToDatabase();
+  let count = 0;
+  for (const item of items) {
+    await VaultItemModel.findOneAndUpdate({ id: item.id }, toVaultItem(item), {
+      upsert: true,
+      new: true,
+    });
+    count++;
+  }
+  return count;
+}
+
 export async function recordAuditEvent(
   action: AuditEvent["action"],
   accountId: string,
@@ -306,6 +435,94 @@ export async function getRecentAuditEvents(limit = 8): Promise<AuditEvent[]> {
     accountName: doc.accountName,
     createdAt: doc.createdAt,
   }));
+}
+
+export async function getAllVaultItems(): Promise<VaultItem[]> {
+  await connectToDatabase();
+  const docs = await VaultItemModel.find()
+    .sort({ updatedAt: -1 })
+    .lean<VaultItem[]>();
+  return docs.map((doc) => toVaultItem(doc));
+}
+
+export async function getVaultItemsByAccountId(
+  accountId: string,
+): Promise<VaultItem[]> {
+  await connectToDatabase();
+  const docs = await VaultItemModel.find({ accountId })
+    .sort({ updatedAt: -1 })
+    .lean<VaultItem[]>();
+  return docs.map((doc) => toVaultItem(doc));
+}
+
+export async function getVaultItemById(id: string): Promise<VaultItem | null> {
+  await connectToDatabase();
+  const doc = await VaultItemModel.findOne({ id }).lean<VaultItem>();
+  return doc ? toVaultItem(doc) : null;
+}
+
+export async function createVaultItem(
+  input: VaultItemInput,
+): Promise<VaultItem> {
+  await connectToDatabase();
+  const now = new Date().toISOString();
+  const item: VaultItem = {
+    id: crypto.randomUUID(),
+    type: input.type,
+    title: input.title.trim(),
+    provider: input.provider?.trim() ?? "",
+    accountId: input.accountId?.trim() ?? "",
+    url: input.url?.trim() ?? "",
+    status: input.status ?? "active",
+    monthlyCost: Number(input.monthlyCost ?? 0),
+    dueDate: input.dueDate ?? "",
+    renewalDate: input.renewalDate ?? "",
+    location: input.location?.trim() ?? "",
+    identifier: input.identifier?.trim() ?? "",
+    notes: input.notes?.trim() ?? "",
+    tags: input.tags ?? [],
+    createdAt: now,
+    updatedAt: now,
+  };
+  await VaultItemModel.create(item);
+  return item;
+}
+
+export async function updateVaultItem(
+  id: string,
+  input: Partial<VaultItemInput>,
+): Promise<VaultItem | null> {
+  await connectToDatabase();
+  const existing = await VaultItemModel.findOne({ id }).lean<VaultItem>();
+  if (!existing) return null;
+
+  const update: Partial<VaultItem> = {
+    type: input.type ?? existing.type,
+    title: input.title?.trim() ?? existing.title,
+    provider: input.provider?.trim() ?? existing.provider ?? "",
+    accountId: input.accountId?.trim() ?? existing.accountId ?? "",
+    url: input.url?.trim() ?? existing.url ?? "",
+    status: input.status ?? existing.status ?? "active",
+    monthlyCost: Number(input.monthlyCost ?? existing.monthlyCost ?? 0),
+    dueDate: input.dueDate ?? existing.dueDate ?? "",
+    renewalDate: input.renewalDate ?? existing.renewalDate ?? "",
+    location: input.location?.trim() ?? existing.location ?? "",
+    identifier: input.identifier?.trim() ?? existing.identifier ?? "",
+    notes: input.notes?.trim() ?? existing.notes ?? "",
+    tags: input.tags ?? existing.tags ?? [],
+    updatedAt: new Date().toISOString(),
+  };
+
+  const updated = await VaultItemModel.findOneAndUpdate({ id }, update, {
+    new: true,
+  }).lean<VaultItem>();
+  return updated ? toVaultItem(updated) : null;
+}
+
+export async function deleteVaultItem(id: string): Promise<boolean> {
+  await connectToDatabase();
+  const result = await VaultItemModel.deleteOne({ id });
+  return result.deletedCount === 1;
 }
 
 /** Returns all accounts with decrypted passwords - for RAG context only */

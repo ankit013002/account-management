@@ -243,3 +243,60 @@ test("creates, reads, updates, and deletes an account using MongoDB", async () =
   const auditCount = runMongosh("print(db.audit_events.countDocuments({}));");
   assert.ok(Number(auditCount.split(/\r?\n/).at(-1)) >= 5);
 });
+
+test("creates, updates, backs up, and deletes command center items", async () => {
+  const created = await request("/api/vault-items", {
+    method: "POST",
+    body: JSON.stringify({
+      type: "subscription",
+      title: "GitHub Copilot",
+      provider: "GitHub",
+      status: "watching",
+      monthlyCost: 10,
+      renewalDate: "2026-07-01",
+      tags: ["developer", "subscription"],
+    }),
+  });
+
+  assert.equal(created.response.status, 201);
+  assert.equal(created.body.title, "GitHub Copilot");
+  assert.equal(created.body.monthlyCost, 10);
+  assert.deepEqual(created.body.tags, ["developer", "subscription"]);
+
+  const list = await request("/api/vault-items");
+  assert.equal(list.response.status, 200);
+  assert.equal(list.body.length, 1);
+
+  const updated = await request(`/api/vault-items/${created.body.id}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      title: "GitHub Copilot Business",
+      monthlyCost: 19,
+      status: "active",
+    }),
+  });
+
+  assert.equal(updated.response.status, 200);
+  assert.equal(updated.body.title, "GitHub Copilot Business");
+  assert.equal(updated.body.monthlyCost, 19);
+  assert.equal(updated.body.status, "active");
+
+  const backup = await request("/api/backup");
+  assert.equal(backup.response.status, 200);
+
+  const deleted = await request(`/api/vault-items/${created.body.id}`, {
+    method: "DELETE",
+  });
+  assert.equal(deleted.response.status, 200);
+
+  const restored = await request("/api/backup", {
+    method: "POST",
+    body: JSON.stringify(backup.body),
+  });
+  assert.equal(restored.response.status, 200);
+  assert.equal(restored.body.importedVaultItems, 1);
+
+  const restoredItem = await request(`/api/vault-items/${created.body.id}`);
+  assert.equal(restoredItem.response.status, 200);
+  assert.equal(restoredItem.body.title, "GitHub Copilot Business");
+});

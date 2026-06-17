@@ -2,7 +2,22 @@
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 
-export default function NewAccountPage() {
+export default async function NewAccountPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    name?: string | string[];
+    url?: string | string[];
+    tags?: string | string[];
+  }>;
+}) {
+  const params = (await searchParams) ?? {};
+  const initialValues = {
+    name: getSingleParam(params.name),
+    url: getSingleParam(params.url),
+    tags: getSingleParam(params.tags),
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6 md:p-8 pl-16 md:pl-8">
       <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-300 transition-colors mb-6">
@@ -17,8 +32,13 @@ export default function NewAccountPage() {
         </div>
       </div>
       <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-6">
-        <AccountForm mode="create" />
+        <AccountForm mode="create" initialValues={initialValues} />
       </div>
     </div>
   );
+}
+
+function getSingleParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
 }

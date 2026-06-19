@@ -284,6 +284,12 @@ test("creates, updates, backs up, and deletes command center items", async () =>
   const backup = await request("/api/backup");
   assert.equal(backup.response.status, 200);
 
+  const summary = await request("/api/extension/summary");
+  assert.equal(summary.response.status, 200);
+  assert.equal(summary.body.vaultItems, 1);
+  assert.equal(summary.body.subscriptions, 1);
+  assert.equal(summary.body.monthlySpend, 19);
+
   const deleted = await request(`/api/vault-items/${created.body.id}`, {
     method: "DELETE",
   });

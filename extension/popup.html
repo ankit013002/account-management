@@ -22,17 +22,58 @@
         <span id="siteUrl"></span>
       </section>
 
-      <section class="matches" id="matches" hidden>
-        <span class="label">Saved matches</span>
-        <div id="matchesList"></div>
+      <section class="panel">
+        <div class="section-head">
+          <span class="label">Vault pulse</span>
+          <button id="refreshPulse" type="button" class="mini">Refresh</button>
+        </div>
+        <div id="pulseGrid" class="pulse-grid">
+          <span class="empty">Loading pulse...</span>
+        </div>
       </section>
 
-      <button id="saveCurrent" type="button">Add current site</button>
-      <button id="trackCurrent" type="button" class="secondary">
-        Track in command center
-      </button>
-      <button id="openToday" type="button" class="secondary">Open today</button>
-      <button id="openVault" type="button" class="secondary">Open vault</button>
+      <div class="action-grid">
+        <button id="saveCurrent" type="button">Add account</button>
+        <button id="trackCurrent" type="button" class="secondary">
+          Track item
+        </button>
+      </div>
+
+      <section class="panel">
+        <div class="section-head">
+          <span class="label">Saved matches</span>
+          <span id="matchCount" class="count"></span>
+        </div>
+        <div id="matchesList" class="stack">
+          <span class="empty">No saved matches yet</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <span class="label">Search vault</span>
+          <span id="searchCount" class="count"></span>
+        </div>
+        <input
+          id="vaultSearch"
+          type="search"
+          placeholder="Search accounts and items..."
+          autocomplete="off"
+        />
+        <div id="searchResults" class="stack compact"></div>
+      </section>
+
+      <div class="nav-grid">
+        <button id="openToday" type="button" class="secondary">Today</button>
+        <button id="openSecurity" type="button" class="secondary">
+          Security
+        </button>
+        <button id="openEmergency" type="button" class="secondary">
+          Emergency
+        </button>
+        <button id="openVault" type="button" class="secondary">Vault</button>
+      </div>
+
       <button id="options" type="button" class="ghost">Settings</button>
     </main>
     <script src="popup.js"></script>

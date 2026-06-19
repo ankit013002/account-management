@@ -2,10 +2,13 @@
   color-scheme: dark;
   --bg: #09090b;
   --panel: #18181b;
+  --panel-soft: rgba(24, 24, 27, 0.72);
   --border: #27272a;
   --text: #f4f4f5;
   --muted: #71717a;
   --accent: #6366f1;
+  --accent-soft: rgba(99, 102, 241, 0.16);
+  --good: #34d399;
 }
 
 * {
@@ -13,7 +16,7 @@
 }
 
 body {
-  width: 320px;
+  width: 360px;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -29,10 +32,16 @@ main {
   padding: 14px;
 }
 
-.brand {
+.brand,
+.section-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+
+.brand {
+  justify-content: flex-start;
 }
 
 .mark {
@@ -42,7 +51,7 @@ main {
   place-items: center;
   border: 1px solid rgba(99, 102, 241, 0.35);
   border-radius: 10px;
-  background: rgba(99, 102, 241, 0.16);
+  background: var(--accent-soft);
   color: #a5b4fc;
   font-weight: 800;
 }
@@ -59,17 +68,20 @@ h1 {
 
 p,
 .label,
-#siteUrl {
+#siteUrl,
+.count,
+.empty,
+.meta {
   color: var(--muted);
   font-size: 11px;
 }
 
 .site,
-.matches {
+.panel {
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(24, 24, 27, 0.72);
+  background: var(--panel-soft);
   padding: 10px;
 }
 
@@ -79,7 +91,9 @@ p,
 }
 
 #siteName,
-#siteUrl {
+#siteUrl,
+.account-title,
+.meta {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -93,6 +107,22 @@ p,
 
 #siteUrl {
   margin-top: 2px;
+}
+
+input {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(9, 9, 11, 0.55);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  padding: 9px 10px;
+}
+
+input:focus {
+  border-color: rgba(99, 102, 241, 0.55);
 }
 
 button {
@@ -109,6 +139,11 @@ button {
 
 button:hover {
   background: #4f46e5;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 button.secondary {
@@ -132,43 +167,142 @@ button.ghost:hover {
   color: var(--text);
 }
 
-#matchesList {
+button.mini {
+  width: auto;
+  border-color: var(--border);
+  background: rgba(24, 24, 27, 0.74);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 5px 8px;
+}
+
+button.mini:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--text);
+}
+
+.action-grid,
+.nav-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.action-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.nav-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stack {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.stack.compact {
+  gap: 6px;
+}
+
+.pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin-top: 8px;
 }
 
-.match {
-  width: 100%;
+.pulse {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: rgba(9, 9, 11, 0.5);
-  color: var(--text);
-  cursor: pointer;
   padding: 8px;
-  text-align: left;
 }
 
-.match strong,
-.match span {
+.pulse strong {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--text);
+  font-size: 14px;
 }
 
-.match strong {
+.pulse span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.pulse.warning strong {
+  color: #fbbf24;
+}
+
+.pulse.danger strong {
+  color: #f87171;
+}
+
+.account-card,
+.item-card {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgba(9, 9, 11, 0.5);
+  padding: 9px;
+}
+
+.account-top,
+.item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.account-title,
+.item-title {
+  display: block;
   font-size: 12px;
+  line-height: 1.2;
 }
 
-.match span {
+.badge {
+  flex-shrink: 0;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--good);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+
+.account-actions,
+.item-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.account-actions button,
+.item-actions button {
+  border-color: var(--border);
+  background: rgba(24, 24, 27, 0.74);
   color: var(--muted);
   font-size: 11px;
-  margin-top: 2px;
+  padding: 6px;
 }
 
-.match:hover {
+.account-actions button:hover,
+.item-actions button:hover {
   border-color: rgba(99, 102, 241, 0.45);
   background: rgba(99, 102, 241, 0.12);
+  color: var(--text);
+}
+
+.empty {
+  display: block;
+  padding: 4px 0;
+  text-align: center;
 }
